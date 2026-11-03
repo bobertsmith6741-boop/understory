@@ -588,19 +588,25 @@ struct DesktopWeatherWidget: View {
                 }
             }
             if options.showForecast, !report.days.isEmpty {
-                HStack {
+                HStack(spacing: theme.s(2)) {
                     ForEach(report.days.prefix(5)) { day in
                         VStack(spacing: theme.s(3)) {
                             Text(Calendar.current.isDateInToday(day.date) ? "Today"
                                  : day.date.formatted(.dateTime.weekday(.abbreviated)))
                                 .font(theme.font(10, .semibold)).foregroundStyle(theme.secondary)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
                             Image(systemName: DesktopWeatherCode.symbol(day.code))
                                 .symbolRenderingMode(.multicolor)
                                 .font(.system(size: theme.s(15)))
                             Text("\(degrees(day.high)) \(degrees(day.low))")
                                 .font(theme.font(10, .medium)).monospacedDigit()
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.6)
                         }
-                        .frame(maxWidth: .infinity)
+                        // Every day gets the same share, so a wide font
+                        // shrinks the numbers instead of pushing past the edge.
+                        .frame(minWidth: 0, maxWidth: .infinity)
                     }
                 }
             }

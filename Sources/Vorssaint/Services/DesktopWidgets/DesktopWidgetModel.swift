@@ -305,7 +305,7 @@ struct DesktopWidget: Codable, Equatable, Identifiable {
         case .stats: return CGSize(width: 270, height: 190)
         case .nowPlaying: return CGSize(width: 340, height: nowPlaying.showControls ? 140 : 108)
         case .calendar: return CGSize(width: 290, height: 236)
-        case .weather: return CGSize(width: 290, height: weather.showForecast ? 190 : 120)
+        case .weather: return CGSize(width: 320, height: weather.showForecast ? 190 : 120)
         }
     }
 
