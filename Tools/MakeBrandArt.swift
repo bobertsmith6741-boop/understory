@@ -28,22 +28,30 @@ func color(_ hex: UInt32, _ a: CGFloat = 1) -> CGColor {
 /// One sakura petal pointing up (+y) from the origin, `length` long, with the
 /// signature notch at its tip.
 func petal(length l: CGFloat, width w: CGFloat) -> CGPath {
+    // Obovate like a real sakura petal: narrow at the heart, full and round
+    // at the top, with only a small notch in the middle of the rim.
     let p = CGMutablePath()
-    p.move(to: CGPoint(x: 0, y: l * 0.06))
-    p.addCurve(to: CGPoint(x: -w * 0.5, y: l * 0.93),
-               control1: CGPoint(x: -w * 0.62, y: l * 0.28), control2: CGPoint(x: -w * 0.70, y: l * 0.78))
-    p.addQuadCurve(to: CGPoint(x: 0, y: l * 0.80), control: CGPoint(x: -w * 0.16, y: l * 1.02))   // into the notch
-    p.addQuadCurve(to: CGPoint(x: w * 0.5, y: l * 0.93), control: CGPoint(x: w * 0.16, y: l * 1.02))
-    p.addCurve(to: CGPoint(x: 0, y: l * 0.06),
-               control1: CGPoint(x: w * 0.70, y: l * 0.78), control2: CGPoint(x: w * 0.62, y: l * 0.28))
+    p.move(to: CGPoint(x: 0, y: l * 0.05))
+    p.addCurve(to: CGPoint(x: -w * 0.5, y: l * 0.72),
+               control1: CGPoint(x: -w * 0.30, y: l * 0.22), control2: CGPoint(x: -w * 0.56, y: l * 0.48))
+    p.addCurve(to: CGPoint(x: -w * 0.10, y: l * 0.99),
+               control1: CGPoint(x: -w * 0.46, y: l * 0.92), control2: CGPoint(x: -w * 0.24, y: l * 1.0))
+    p.addLine(to: CGPoint(x: 0, y: l * 0.91))                       // the small notch
+    p.addLine(to: CGPoint(x: w * 0.10, y: l * 0.99))
+    p.addCurve(to: CGPoint(x: w * 0.5, y: l * 0.72),
+               control1: CGPoint(x: w * 0.24, y: l * 1.0), control2: CGPoint(x: w * 0.46, y: l * 0.92))
+    p.addCurve(to: CGPoint(x: 0, y: l * 0.05),
+               control1: CGPoint(x: w * 0.56, y: l * 0.48), control2: CGPoint(x: w * 0.30, y: l * 0.22))
     p.closeSubpath()
     return p
 }
 
-func blossom(center c: CGPoint, length: CGFloat, width: CGFloat, rotation: CGFloat) -> [CGPath] {
+func blossom(center c: CGPoint, length: CGFloat, width: CGFloat, rotation: CGFloat,
+             gap: CGFloat = 0) -> [CGPath] {
     (0..<5).map { i in
         var t = CGAffineTransform(translationX: c.x, y: c.y)
             .rotated(by: rotation + CGFloat(i) * 2 * .pi / 5)
+            .translatedBy(x: 0, y: gap)
         return petal(length: length, width: width).copy(using: &t)!
     }
 }
@@ -101,19 +109,24 @@ let icon = canvas { ctx in
     ctx.restoreGState()
 }
 
-// Template glyph: black blossom, heart knocked out.
+// Template glyph: an outlined blossom with stamens, which reads as a flower
+// even at menu bar size (a filled silhouette looked like a clover).
 let glyph = canvas { ctx in
     let center = CGPoint(x: 512, y: 500)
-    ctx.setFillColor(color(0x000000))
-    let petals = blossom(center: center, length: 480, width: 330, rotation: 0)
-    for path in petals { ctx.addPath(path); ctx.fillPath() }
-    // Thin gaps between the petals so the bloom reads at menu bar size.
-    ctx.setBlendMode(.clear)
-    ctx.setLineWidth(34); ctx.setLineJoin(.round)
-    for path in petals { ctx.addPath(path); ctx.strokePath() }
-    ctx.fillEllipse(in: CGRect(x: center.x - 78, y: center.y - 78, width: 156, height: 156))
-    ctx.setBlendMode(.normal)
-    ctx.fillEllipse(in: CGRect(x: center.x - 34, y: center.y - 34, width: 68, height: 68))
+    ctx.setStrokeColor(color(0x000000)); ctx.setFillColor(color(0x000000))
+    ctx.setLineWidth(52); ctx.setLineJoin(.round); ctx.setLineCap(.round)
+    for path in blossom(center: center, length: 330, width: 330, rotation: 0, gap: 120) {
+        ctx.addPath(path); ctx.strokePath()
+    }
+    // Stamens in the open heart: short lines with round tips.
+    ctx.setLineWidth(26)
+    for i in 0..<5 {
+        let a = CGFloat(i) * 2 * .pi / 5 + .pi / 5
+        let end = CGPoint(x: center.x + sin(a) * 118, y: center.y + cos(a) * 118)
+        ctx.move(to: center); ctx.addLine(to: end); ctx.strokePath()
+        ctx.fillEllipse(in: CGRect(x: end.x - 30, y: end.y - 30, width: 60, height: 60))
+    }
+    ctx.fillEllipse(in: CGRect(x: center.x - 44, y: center.y - 44, width: 88, height: 88))
 }
 
 try! icon.write(to: URL(fileURLWithPath: "\(outDir)/AppIcon-Default.png"))
