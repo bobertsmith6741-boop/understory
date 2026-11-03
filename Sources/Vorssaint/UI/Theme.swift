@@ -74,7 +74,7 @@ enum PanelSurface {
     }
 
     static func cardFill(for scheme: ColorScheme) -> Color {
-        scheme == .light ? Color.white.opacity(0.38) : Color.white.opacity(0.075)
+        scheme == .light ? Color.white.opacity(0.28) : Color.white.opacity(0.06)
     }
 
     static func controlFill(for scheme: ColorScheme) -> Color {
@@ -199,10 +199,10 @@ private struct PanelGlassSurface: View {
         if #available(macOS 26.0, *), liquidGlassEnabled, !reduceTransparency {
             Rectangle()
                 .fill(Color.clear)
-                .glassEffect(.regular, in: Rectangle())
+                .glassEffect(.clear, in: Rectangle())  // Understory: the see-through glass variant
                 .overlay(
                     Rectangle()
-                        .fill(PanelSurface.baseFill(for: colorScheme).opacity(colorScheme == .light ? 0.22 : 0.2))  // Understory: let the glass through
+                        .fill(PanelSurface.baseFill(for: colorScheme).opacity(colorScheme == .light ? 0.14 : 0.1))  // Understory: let the glass through
                 )
         } else {
             standardSurface

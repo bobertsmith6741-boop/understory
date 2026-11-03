@@ -568,8 +568,8 @@ struct NotchSurfaceBackground: View {
             if #available(macOS 26, *), showsGlass, presentation.restingBlack < 1 {
                 let shape = NotchBackdropShape(contour: presentation.contour)
                 Color.clear
-                    // Understory: the frosted system glass (Control Center, notifications).
-                    .glassEffect(.regular, in: shape)
+                    // Understory: the see-through system glass variant.
+                    .glassEffect(.clear, in: shape)
                     .environment(\.appearsActive, true)
                     .materialActiveAppearance(.active)
                     .overlay {
@@ -600,7 +600,7 @@ struct NotchSurfaceBackground: View {
     /// (upstream kept the panel near-opaque and opened only a lip at the bottom).
     static func shade(openness: Double, contrast: ColorSchemeContrast,
                       stripFraction: Double = 0.22) -> [Gradient.Stop] {
-        let remainingBlack = contrast == .increased ? 0.72 : 0.34
+        let remainingBlack = contrast == .increased ? 0.6 : 0.14
         let strip = min(max(stripFraction, 0), 0.9)
         return (0...64).map { index in
             let t = Double(index) / 64
