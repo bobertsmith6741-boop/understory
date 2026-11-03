@@ -8,7 +8,7 @@ import Foundation
 /// rest, but nothing is deleted — every feature keeps its settings and comes
 /// back with one click, exactly like any hub install.
 enum FeaturePreset: String, CaseIterable, Identifiable {
-    case essential, windows, battery
+    case simple, essential, windows, battery  // Understory: Simple first
 
     var id: String { rawValue }
 
@@ -20,15 +20,20 @@ enum FeaturePreset: String, CaseIterable, Identifiable {
         guard !defaults.bool(forKey: DefaultsKey.hasOnboarded),
               defaults.integer(forKey: DefaultsKey.onboardingStep) == 0
         else { return }
-        let selected = FeaturePreset.essential.features
+        // Understory: a fresh install starts as just the island (Simple).
+        let selected = FeaturePreset.simple.features
         for feature in AppFeature.allCases {
             defaults.set(selected.contains(feature), forKey: feature.availabilityKey)
         }
+        for key in FeaturePreset.simple.firstRunEnableKeys { defaults.set(true, forKey: key) }
     }
 
     /// The features the preset keeps installed.
     var features: Set<AppFeature> {
         switch self {
+        case .simple:
+            // Understory: a Canopy-style island and nothing else.
+            return [.notch, .notchLyrics, .notchAccessories, .notchCalendar, .monitorPower]
         case .essential:
             return [.mixer, .keepAwake,
                     .monitorCPU, .monitorGPU, .monitorMemory,
@@ -47,6 +52,10 @@ enum FeaturePreset: String, CaseIterable, Identifiable {
     /// Presets whose features are on-demand need none.
     var enableKeys: [String] {
         switch self {
+        case .simple:
+            // Applied by the user, so finding lyrics online is part of the choice
+            // (the preset's description says so).
+            return [DefaultsKey.notchEnabled, DefaultsKey.notchLockScreen, DefaultsKey.notchLyricsOnline]
         case .essential, .battery:
             return []
         case .windows:
@@ -57,8 +66,15 @@ enum FeaturePreset: String, CaseIterable, Identifiable {
         }
     }
 
+    /// Understory: switched on at first run. Lyrics stay offline until the
+    /// user turns them on, since that sends song details to lrclib.net.
+    var firstRunEnableKeys: [String] {
+        self == .simple ? [DefaultsKey.notchEnabled, DefaultsKey.notchLockScreen] : []
+    }
+
     var symbolName: String {
         switch self {
+        case .simple: return "sparkles"
         case .essential: return "star.fill"
         case .windows: return "macwindow.on.rectangle"
         case .battery: return "battery.75percent"

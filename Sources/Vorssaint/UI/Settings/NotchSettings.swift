@@ -29,6 +29,7 @@ struct NotchSettings: View {
     @AppStorage(DefaultsKey.notchLyricsEnabled) private var lyricsEnabled = true
     @AppStorage(DefaultsKey.notchLyricsOnline) private var lyricsOnline = false
     @AppStorage(DefaultsKey.notchLyricsUnderNotch) private var lyricsUnderNotch = true
+    @AppStorage(DefaultsKey.notchAmbientGlow) private var ambientGlow = true
     @AppStorage(DefaultsKey.notchBrowserCovers) private var browserCovers = false
     @AppStorage(DefaultsKey.notchQueueEnabled) private var queueEnabled = true
     @AppStorage(DefaultsKey.notchLiveEqualizer) private var liveEqualizer = false
@@ -202,7 +203,9 @@ struct NotchSettings: View {
         ScrollView {
             Group {
                 switch tab {
-                case .layout: layoutPage
+                case .layout:
+                    // Understory: the popular switches first, in plain words.
+                    VStack(alignment: .leading, spacing: 20) { quickSettingsCard; layoutPage }
                 case .content: EmptyView()
                 case .activity: activityPage
                 case .behavior: behaviorPage
@@ -225,6 +228,22 @@ struct NotchSettings: View {
         if !NotchLyricsSupport.isEnabled() { NotchLyricsService.shared.stop() }
         NotchMusicService.shared.syncQueuePreference()
         if AppFeature.brightness.isAvailable { BrightnessService.shared.syncWithPreferences() }
+    }
+
+    /// Understory: one card with the switches people look for, so nobody has
+    /// to dig through tabs. Each is the same setting as on its own page.
+    @ViewBuilder private var quickSettingsCard: some View {
+        let quick = UnderstoryStrings.quickSettings(l10n.language)
+        SettingsCard(title: quick.title) {
+            switchRow("lock.display", quick.lockScreen, caption: quick.lockScreenHint, isOn: $lockScreen)
+            if AppFeature.notchLyrics.isAvailable, lyricsEnabled {
+                switchRow("text.below.photo", quick.lyricsUnderNotch, caption: quick.lyricsUnderNotchHint,
+                          isOn: $lyricsUnderNotch)
+                switchRow("globe", quick.lyricsOnline, caption: quick.lyricsOnlineHint, isOn: $lyricsOnline)
+            }
+            switchRow("sparkles", quick.glow, caption: quick.glowHint, isOn: $ambientGlow)
+            switchRow("drop", quick.glass, caption: quick.glassHint, isOn: $liquidGlass)
+        }
     }
 
     private var layoutPage: some View {
@@ -447,6 +466,8 @@ struct NotchSettings: View {
                 guard let choices = await NotchPreferredPlayer.loadInstalled(), !Task.isCancelled else { return }
                 preferredPlayers = choices
             }
+            switchRow("sparkles", UnderstoryStrings.ambientGlow(l10n.language).title,
+                      caption: UnderstoryStrings.ambientGlow(l10n.language).caption, isOn: $ambientGlow)
             SettingsFeatureSwitchRow(symbol: "text.quote", title: music.enableLyrics, isOn: $lyricsEnabled, feature: .notchLyrics)
             if lyricsEnabled, AppFeature.notchLyrics.isAvailable {
                 switchRow("globe", music.online, caption: music.onlineHint, isOn: $lyricsOnline)

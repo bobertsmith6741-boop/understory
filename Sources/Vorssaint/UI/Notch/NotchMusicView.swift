@@ -14,6 +14,7 @@ struct NotchMusicView: View {
     @AppStorage(DefaultsKey.notchLyricsEnabled) private var lyricsEnabled = true
     @AppStorage(DefaultsKey.notchQueueEnabled) private var queueEnabled = true
     @AppStorage(DefaultsKey.notchMusicShowVolume) private var showVolume = false
+    @AppStorage(DefaultsKey.notchAmbientGlow) private var ambientGlow = true
     @State private var extra: MusicExtra?
     private enum MusicExtra { case lyrics, queue }
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -82,6 +83,21 @@ struct NotchMusicView: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        // Understory: the album's color glows softly behind the player, as on
+        // the iPhone's Now Playing, and drifts to the next cover's color.
+        .background(alignment: .topLeading) {
+            if ambientGlow, !preview, service.playback != nil, let tint = service.artworkTint {
+                RadialGradient(colors: [tint.color.opacity(0.5), tint.color.opacity(0.14), .clear],
+                               center: .topLeading, startRadius: 0,
+                               endRadius: max(size.width, 280) * 0.8)
+                    .blur(radius: 30)
+                    .padding(-48)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+                    .transition(.opacity)
+            }
+        }
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.7), value: service.artworkTint)
         // Beside the camera the row holds the song's extras, across from the cover.
         .notchBand(trailing: {
             if band.besideCamera, service.playback != nil { extraButtons }

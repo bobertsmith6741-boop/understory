@@ -88,6 +88,53 @@ struct NotchCompactLyricsLoader: View {
 
 /// Understory's own strings. English everywhere until translated.
 enum UnderstoryStrings {
+    struct QuickSettings {
+        let title, lockScreen, lockScreenHint, lyricsUnderNotch, lyricsUnderNotchHint,
+            lyricsOnline, lyricsOnlineHint, glow, glowHint, glass, glassHint: String
+    }
+
+    static func quickSettings(_ language: AppLanguage) -> QuickSettings {
+        switch language {
+        case .ptBR: return QuickSettings(
+            title: "Ajustes rápidos",
+            lockScreen: "Música na tela bloqueada", lockScreenHint: "Mostra o que está tocando quando o Mac está bloqueado.",
+            lyricsUnderNotch: "Letra sob o notch", lyricsUnderNotchHint: "A linha atual da letra aparece abaixo da câmera.",
+            lyricsOnline: "Buscar letras online", lyricsOnlineHint: "Envia título e artista da música para lrclib.net.",
+            glow: "Brilho do álbum", glowHint: "Um brilho suave na cor da capa atrás do player.",
+            glass: "Visual de vidro", glassHint: "A ilha aberta usa o vidro transparente do macOS.")
+        case .es: return QuickSettings(
+            title: "Ajustes rápidos",
+            lockScreen: "Música en la pantalla bloqueada", lockScreenHint: "Muestra lo que suena cuando el Mac está bloqueado.",
+            lyricsUnderNotch: "Letra bajo el notch", lyricsUnderNotchHint: "La línea actual de la letra aparece bajo la cámara.",
+            lyricsOnline: "Buscar letras en línea", lyricsOnlineHint: "Envía el título y el artista a lrclib.net.",
+            glow: "Brillo del álbum", glowHint: "Un brillo suave del color de la portada detrás del reproductor.",
+            glass: "Aspecto de cristal", glassHint: "La isla abierta usa el cristal transparente de macOS.")
+        default: return QuickSettings(
+            title: "Quick settings",
+            lockScreen: "Music on the lock screen", lockScreenHint: "Show what's playing while your Mac is locked.",
+            lyricsUnderNotch: "Lyrics under the notch", lyricsUnderNotchHint: "The current lyric line shows below the camera while music plays.",
+            lyricsOnline: "Find lyrics online", lyricsOnlineHint: "Sends the song title and artist to lrclib.net to look up lyrics.",
+            glow: "Album glow", glowHint: "A soft glow in the cover's color behind the player.",
+            glass: "Glass look", glassHint: "The open island uses macOS's see-through glass.")
+        }
+    }
+
+    static func simplePreset(_ language: AppLanguage) -> (name: String, description: String) {
+        switch language {
+        case .ptBR: return ("Simples", "Só a Dynamic Island: música, letras, tela de bloqueio, AirPods e calendário. Busca letras online.")
+        case .es: return ("Simple", "Solo la Dynamic Island: música, letras, pantalla bloqueada, AirPods y calendario. Busca letras en línea.")
+        default: return ("Simple", "Just the Dynamic Island: music, lyrics, lock screen, AirPods and calendar. Finds lyrics online.")
+        }
+    }
+
+    static func ambientGlow(_ language: AppLanguage) -> (title: String, caption: String) {
+        switch language {
+        case .ptBR: return ("Brilho do álbum", "Um brilho suave na cor da capa atrás do player.")
+        case .es: return ("Brillo del álbum", "Un brillo suave del color de la portada detrás del reproductor.")
+        default: return ("Album glow", "A soft glow in the cover's color behind the player.")
+        }
+    }
+
     static func lyricsUnderNotch(_ language: AppLanguage) -> (title: String, caption: String) {
         switch language {
         case .ptBR: return ("Letra sob o notch", "Mostra a linha atual da letra abaixo da câmera enquanto a música toca.")

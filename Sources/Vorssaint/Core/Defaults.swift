@@ -869,6 +869,8 @@ enum DefaultsKey {
     static let notchLyricsOnline = "notchLyricsOnline"
     /// Understory: current lyric line under the camera while the island is closed.
     static let notchLyricsUnderNotch = "notchLyricsUnderNotch"
+    /// Understory: a soft glow in the album's color behind the open player.
+    static let notchAmbientGlow = "notchAmbientGlow"
     static let notchBrowserCovers = "notchBrowserCovers"
     static let notchLiveEqualizer = "notchLiveEqualizer"
     static let notchQueueEnabled = "notchQueueEnabled"
@@ -1509,6 +1511,7 @@ enum Defaults {
         DefaultsKey.notchLyricsEnabled: true,
         DefaultsKey.notchLyricsOnline: false,
         DefaultsKey.notchLyricsUnderNotch: true,
+        DefaultsKey.notchAmbientGlow: true,
         DefaultsKey.notchBrowserCovers: false,
         DefaultsKey.notchLiveEqualizer: false,
         DefaultsKey.notchQueueEnabled: true,
@@ -1555,7 +1558,7 @@ enum Defaults {
         DefaultsKey.notchTrackChange: true,
         DefaultsKey.notchMusicActivity: false,
         DefaultsKey.notchShowInCaptures: true,
-        DefaultsKey.notchLockScreen: false,
+        DefaultsKey.notchLockScreen: true,  // Understory: music on the lock screen by default
         DefaultsKey.notchLockSounds: false,
         DefaultsKey.notchMascotEnabled: false,
         DefaultsKey.notchMascotVisits: true,

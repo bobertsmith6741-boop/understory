@@ -37,7 +37,7 @@ struct OnboardingView: View {
             || defaults.integer(forKey: DefaultsKey.onboardingStep) >= 2
         let features = selectionWasApplied
             ? Set(AppFeature.allCases.filter(\.isAvailable))
-            : FeaturePreset.essential.features
+            : FeaturePreset.simple.features
         _selectedFeatures = State(initialValue: features)
         _selectedPreset = State(initialValue: selectionWasApplied ? nil : .essential)
     }
@@ -273,6 +273,7 @@ private struct PurposeStep: View {
 
     private func name(_ preset: FeaturePreset) -> String {
         switch preset {
+        case .simple: return UnderstoryStrings.simplePreset(L10n.shared.language).name
         case .essential: return hub.presetEssentialName
         case .windows: return hub.presetWindowsName
         case .battery: return hub.presetBatteryName
@@ -281,6 +282,7 @@ private struct PurposeStep: View {
 
     private func caption(_ preset: FeaturePreset) -> String {
         switch preset {
+        case .simple: return UnderstoryStrings.simplePreset(L10n.shared.language).description
         case .essential: return hub.presetEssentialDesc
         case .windows: return hub.presetWindowsDesc
         case .battery: return hub.presetBatteryDesc
