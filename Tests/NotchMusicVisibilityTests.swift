@@ -50,6 +50,12 @@ enum NotchMusicVisibilityTests {
     enum NotchPanel { static let normalLevel = 0 }
     enum NSEvent { static let mouseLocation = CGPoint.zero }
 
+    /// The lyric row under the notch never shows in these scenarios.
+    enum NotchCompactLyrics {
+        static let rowHeight: CGFloat = 22
+        static func shows<Playback>(playback: Playback?) -> Bool { false }
+    }
+
     class State {
         var activitySelection = NotchActivitySelection()
         var timerCompanions: [NotchCompactActivity] = []
@@ -61,6 +67,7 @@ enum NotchMusicVisibilityTests {
             count: 2, labelWidth: 80, stripSize: CGSize(width: 300, height: 32), screenWidth: 1440)
         var hiddenInFullscreen = false
         var running = true
+        var wantsMusicReader = false
         var suspended = false
         var expanded = false
         var peeking = false

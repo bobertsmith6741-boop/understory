@@ -350,6 +350,8 @@ if (( TEST )); then
         Sources/Vorssaint/Core/RecorderShareStrings.swift
         Sources/Vorssaint/Core/CameraPreviewStrings.swift
         Sources/Vorssaint/Core/WallpaperStrings.swift
+        Sources/Vorssaint/Core/DesktopWidgetStrings.swift
+        Sources/Vorssaint/Services/DesktopWidgets/DesktopWidgetModel.swift
         Sources/Vorssaint/Services/Wallpaper/WallpaperSupport.swift
         Sources/Vorssaint/UI/MenuPanel/WallpaperThumbnailView.swift
         Sources/Vorssaint/Core/ScratchpadStrings.swift

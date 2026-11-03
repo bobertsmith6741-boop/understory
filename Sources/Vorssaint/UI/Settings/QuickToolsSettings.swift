@@ -240,6 +240,10 @@ struct QuickToolsSettings: View {
                 .settingsFormSectionAnchor(.wallpaper)
             }
 
+            if AppFeature.desktopWidgets.isAvailable {
+                DesktopWidgetSettingsSections()
+            }
+
             if AppFeature.scratchpad.isAvailable {
                 Section {
                     Button {

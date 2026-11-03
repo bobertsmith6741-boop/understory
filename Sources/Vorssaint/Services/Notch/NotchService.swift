@@ -249,6 +249,9 @@ final class NotchService: ObservableObject {
     /// Up and measuring its display. Settings previews read the island's
     /// size only then.
     private(set) var running = false
+    /// Whether the island last asked for the now-playing reader, so a desktop
+    /// widget letting go of it knows whether to leave it running.
+    private(set) var wantsMusicReader = false
     private var session = NotchSessionState()
     private var suspended: Bool { !session.canPresent }
     @Published private(set) var hiddenInFullscreen = false {
@@ -1323,6 +1326,7 @@ final class NotchService: ObservableObject {
         awaitsTrackNotice = false
         subscriptions.removeAll()
         stopPower()
+        wantsMusicReader = false
         NotchMusicService.shared.stop()
         NotchAudioLevelService.shared.stop()
         CameraPreviewService.shared.hideEmbedded()
@@ -4442,11 +4446,12 @@ final class NotchService: ObservableObject {
 
     private func syncVisibleConsumers() {
         syncMenuSpaceMonitoring()
-        guard running, !suspended else { releaseMonitor(); return }
+        guard running, !suspended else { wantsMusicReader = false; releaseMonitor(); return }
         if fullscreenCompact {
             CameraPreviewService.shared.hideEmbedded()
             // A copy on another display still shows the song playing.
             let copiesShowMusic = showsCopies && NotchSupport.watchesMusicActivity()
+            wantsMusicReader = copiesShowMusic
             if copiesShowMusic { NotchMusicService.shared.start() } else { NotchMusicService.shared.stop() }
             releaseMonitor()
             return
@@ -4459,6 +4464,7 @@ final class NotchService: ObservableObject {
             && !showingAppPanel && !showingSections && !showingCommandBar)
             || ((!hiddenUntilHover || NotchSupport.hiddenShowsActivity())
                 && (NotchSupport.watchesMusicActivity() || NotchSupport.routes(.track))))
+        wantsMusicReader = musicWanted
         if musicWanted { NotchMusicService.shared.start() } else { NotchMusicService.shared.stop() }
         let needs = expanded && selected == .system && selectedMetric == nil && modules.contains(.system) && !showingAppPanel
             && !showingSections && !showingCommandBar

@@ -102,7 +102,7 @@ final class NotchMusicService: ObservableObject {
         let includeOtherPlayers = UserDefaults.standard.bool(forKey: DefaultsKey.notchIncludeOtherPlayers)
         if wantsPlayback {
             guard self.includeOtherPlayers != includeOtherPlayers else { return }
-            stop()
+            stopReader()
         }
         self.includeOtherPlayers = includeOtherPlayers
         wantsPlayback = true
@@ -373,7 +373,26 @@ final class NotchMusicService: ObservableObject {
                                      blue: Double(pixel[2]) / 255)
     }
 
+    /// Desktop widgets keep the reader alive on their own: while one holds it,
+    /// the island and lock screen asking to stop leave it running.
+    private(set) var heldByWidgets = false
+
+    func setHeldByWidgets(_ held: Bool) {
+        guard heldByWidgets != held else { return }
+        heldByWidgets = held
+        if held {
+            start()
+        } else if !(AppFeature.notch.isAvailable && NotchService.shared.wantsMusicReader) {
+            stop()
+        }
+    }
+
     func stop() {
+        guard !heldByWidgets else { return }
+        stopReader()
+    }
+
+    private func stopReader() {
         wantsPlayback = false
         awaitingPlayback = false
         restartWork?.cancel()

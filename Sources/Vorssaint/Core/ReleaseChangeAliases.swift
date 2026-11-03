@@ -136,6 +136,7 @@ enum ReleaseChangeAliases {
         case .commandBar: return ["command bar", "calculator"]
         case .screenRecorder: return ["screen recording", "screen recordings", "recording", "recordings",
             "recorder", "recording editor", "gif export", "gif exports"]
+        case .desktopWidgets: return [.exact("Desktop widgets"), "desktop widget", "widgets"]
         case .wallpaper: return [.exact("Wallpaper"), "wallpaper gallery", "wallpapers"]
         case .killProcess: return ["kill process", "force kill", "process tree"]
         case .portManager: return ["port manager"]

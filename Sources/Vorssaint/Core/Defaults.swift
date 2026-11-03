@@ -609,6 +609,8 @@ enum DefaultsKey {
     static let cameraPreviewShortcutEnabled = "cameraPreviewShortcutEnabled"
     static let cameraPreviewShortcut = "cameraPreviewShortcut"
     static let wallpaperApplyAllDisplays = "wallpaperApplyAllDisplays"
+    /// Every desktop widget, its place and its look, as one JSON document.
+    static let desktopWidgetsConfiguration = "desktopWidgetsConfiguration"
     static let wallpaperFilter = "wallpaperFilter"
     static let wallpaperOwnBookmarks = "wallpaperOwnBookmarks"
     // paths hidden from folder scans (does not delete files)
