@@ -963,6 +963,11 @@ final class NotchService: ObservableObject {
         if showsCompactActivityPicker { return compactActivityPickerLayout.size }
         if compactActivity != nil {
             var resting = compactActivityGeometry.compactActivitySize
+            // Understory: a lyric row under the camera while music plays.
+            if compactActivity == .music, compactCompanion == nil, !geometry.floats,
+               NotchCompactLyrics.shows(playback: NotchMusicService.shared.playback) {
+                resting.height += NotchCompactLyrics.rowHeight
+            }
             // A strip naming its song reaches further on its cover's side,
             // where the emphasis has the least room.
             let named = namedMusicWings

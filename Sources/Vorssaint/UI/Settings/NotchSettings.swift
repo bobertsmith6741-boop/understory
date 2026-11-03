@@ -28,6 +28,7 @@ struct NotchSettings: View {
     @AppStorage(DefaultsKey.notchWatchEnabled) private var watchEnabled = true
     @AppStorage(DefaultsKey.notchLyricsEnabled) private var lyricsEnabled = true
     @AppStorage(DefaultsKey.notchLyricsOnline) private var lyricsOnline = false
+    @AppStorage(DefaultsKey.notchLyricsUnderNotch) private var lyricsUnderNotch = true
     @AppStorage(DefaultsKey.notchBrowserCovers) private var browserCovers = false
     @AppStorage(DefaultsKey.notchQueueEnabled) private var queueEnabled = true
     @AppStorage(DefaultsKey.notchLiveEqualizer) private var liveEqualizer = false
@@ -449,6 +450,8 @@ struct NotchSettings: View {
             SettingsFeatureSwitchRow(symbol: "text.quote", title: music.enableLyrics, isOn: $lyricsEnabled, feature: .notchLyrics)
             if lyricsEnabled, AppFeature.notchLyrics.isAvailable {
                 switchRow("globe", music.online, caption: music.onlineHint, isOn: $lyricsOnline)
+                switchRow("text.below.photo", UnderstoryStrings.lyricsUnderNotch(l10n.language).title,
+                          caption: UnderstoryStrings.lyricsUnderNotch(l10n.language).caption, isOn: $lyricsUnderNotch)
                     .padding(.leading, settingsRowTextInset)
             }
             switchRow("photo", music.browserCovers, caption: music.browserCoversHint, isOn: $browserCovers)

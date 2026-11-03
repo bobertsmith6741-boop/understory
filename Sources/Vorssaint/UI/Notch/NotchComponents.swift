@@ -496,6 +496,8 @@ final class NotchBackdropPresentation: ObservableObject {
     /// capsule's contour starts below it and ends above the surface's bottom.
     var openness: Double { Double(fade.openness(atHeight: contourBottom + floatingGap)) }
     fileprivate var contourBottom: CGFloat { contour.boundingRect.isNull ? 0 : contour.boundingRect.maxY }
+    /// Understory: the share of the island that sits over the camera housing.
+    var stripFraction: Double { contourBottom > 0 ? Double(stripHeight / contourBottom) : 0.22 }
 
     /// How much of the resting black still lies beneath the glass. It lets go
     /// as the glass opens and is gone once the glass is fully open, so an
@@ -566,11 +568,13 @@ struct NotchSurfaceBackground: View {
             if #available(macOS 26, *), showsGlass, presentation.restingBlack < 1 {
                 let shape = NotchBackdropShape(contour: presentation.contour)
                 Color.clear
-                    .glassEffect(.clear, in: shape)
+                    // Understory: the frosted system glass (Control Center, notifications).
+                    .glassEffect(.regular, in: shape)
                     .environment(\.appearsActive, true)
                     .materialActiveAppearance(.active)
                     .overlay {
-                        LinearGradient(stops: Self.shade(openness: presentation.openness, contrast: contrast),
+                        LinearGradient(stops: Self.shade(openness: presentation.openness, contrast: contrast,
+                                                         stripFraction: presentation.stripFraction),
                                        startPoint: .top, endPoint: .bottom)
                             .frame(height: presentation.contourBottom)
                             .frame(maxHeight: .infinity, alignment: .top)
@@ -590,12 +594,20 @@ struct NotchSurfaceBackground: View {
     /// The dimming over the glass, from the top of the island to its lip. Near
     /// a black strip the lip closes up, so the last frames of a collapse
     /// already match the resting island.
-    static func shade(openness: Double, contrast: ColorSchemeContrast) -> [Gradient.Stop] {
-        (0...64).map { index in
+    ///
+    /// Understory: black only over the camera housing, so the island still
+    /// meets the notch seamlessly, then a quick ease into mostly-clear glass
+    /// (upstream kept the panel near-opaque and opened only a lip at the bottom).
+    static func shade(openness: Double, contrast: ColorSchemeContrast,
+                      stripFraction: Double = 0.22) -> [Gradient.Stop] {
+        let remainingBlack = contrast == .increased ? 0.72 : 0.34
+        let strip = min(max(stripFraction, 0), 0.9)
+        return (0...64).map { index in
             let t = Double(index) / 64
-            return Gradient.Stop(
-                color: .black.opacity(1 - openness * (contrast == .increased ? 0.10 : 0.45) * pow(t, 2.5)),
-                location: t)
+            let beyond = max(0, (t - strip) / (1 - strip))
+            let eased = 1 - pow(1 - min(1, beyond * 2.2), 2)
+            let clear = openness * (1 - remainingBlack) * eased
+            return Gradient.Stop(color: .black.opacity(1 - clear), location: t)
         }
     }
 }

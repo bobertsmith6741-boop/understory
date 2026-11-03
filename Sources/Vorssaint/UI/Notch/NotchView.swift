@@ -250,7 +250,17 @@ struct NotchView: View {
             case .downloads: NotchDownloadStrip(service: service, displayGeometry: geometry)
             case .agents: NotchAgentStrip(service: service, displayGeometry: geometry)
             case .calendar: NotchCalendarStrip(service: service, displayGeometry: geometry)
-            case .music: NotchMusicStrip(service: service, displayGeometry: geometry, interactive: true)
+            case .music:
+                // Understory: the current lyric under the camera.
+                VStack(spacing: 0) {
+                    NotchMusicStrip(service: service, displayGeometry: geometry, interactive: true)
+                    if service.compactCompanion == nil,
+                       NotchCompactLyrics.shows(playback: NotchMusicService.shared.playback) {
+                        NotchCompactLyricLine(width: geometry.compactActivitySize.width)
+                            .transition(.opacity)
+                    }
+                }
+                .background(NotchCompactLyricsLoader())
             case .keepAwake: NotchKeepAwakeStrip(service: service, displayGeometry: geometry)
             }
         }

@@ -867,6 +867,8 @@ enum DefaultsKey {
     static let notchAccessoriesEnabled = "notchAccessoriesEnabled"
     static let notchLyricsEnabled = "notchLyricsEnabled"
     static let notchLyricsOnline = "notchLyricsOnline"
+    /// Understory: current lyric line under the camera while the island is closed.
+    static let notchLyricsUnderNotch = "notchLyricsUnderNotch"
     static let notchBrowserCovers = "notchBrowserCovers"
     static let notchLiveEqualizer = "notchLiveEqualizer"
     static let notchQueueEnabled = "notchQueueEnabled"
@@ -1210,8 +1212,8 @@ enum Defaults {
 
     static let registeredDefaults: [String: Any] = [
         DefaultsKey.appearance: AppAppearance.fallback.rawValue,
-        DefaultsKey.liquidGlassEnabled: false,
-        DefaultsKey.notchLiquidGlassEnabled: false,
+        DefaultsKey.liquidGlassEnabled: true,  // Understory: glass windows and panels by default
+        DefaultsKey.notchLiquidGlassEnabled: true,  // Understory: glass by default
         DefaultsKey.clamshellPreferred: false,
         DefaultsKey.dimScreenOnLidClose: false,
         DefaultsKey.defaultDuration: 0,
@@ -1506,6 +1508,7 @@ enum Defaults {
         DefaultsKey.notchAgentsPriceUpdates: true,
         DefaultsKey.notchLyricsEnabled: true,
         DefaultsKey.notchLyricsOnline: false,
+        DefaultsKey.notchLyricsUnderNotch: true,
         DefaultsKey.notchBrowserCovers: false,
         DefaultsKey.notchLiveEqualizer: false,
         DefaultsKey.notchQueueEnabled: true,
@@ -2073,7 +2076,7 @@ enum Defaults {
         guard let domainName else { return }
         let saved = defaults.persistentDomain(forName: domainName) ?? [:]
         guard saved[DefaultsKey.notchLiquidGlassEnabled] == nil else { return }
-        defaults.set(saved[DefaultsKey.liquidGlassEnabled] as? Bool ?? false,
+        defaults.set(saved[DefaultsKey.liquidGlassEnabled] as? Bool ?? true,  // Understory: glass by default
                      forKey: DefaultsKey.notchLiquidGlassEnabled)
     }
 
