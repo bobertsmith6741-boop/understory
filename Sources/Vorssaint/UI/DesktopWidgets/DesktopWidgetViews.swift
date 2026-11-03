@@ -28,9 +28,17 @@ extension Color {
 /// What every widget view draws with: its scale, colors and font.
 struct DesktopWidgetTheme {
     let style: DesktopWidgetStyle
+    /// Colors read from the wallpaper behind the widget, when it matches it.
+    var wallpaper: DesktopWallpaperPalette.Sample? = nil
 
-    var accent: Color { Color(widgetHex: style.accentHex, fallback: .pink) }
-    var text: Color { Color(widgetHex: style.textHex) }
+    var accent: Color {
+        if style.matchWallpaper, let wallpaper { return Color(nsColor: wallpaper.accent) }
+        return Color(widgetHex: style.accentHex, fallback: .pink)
+    }
+    var text: Color {
+        if style.matchWallpaper, let wallpaper { return Color(nsColor: wallpaper.text) }
+        return Color(widgetHex: style.textHex)
+    }
     var secondary: Color { text.opacity(0.68) }
     var tertiary: Color { text.opacity(0.42) }
 
@@ -119,10 +127,13 @@ private struct DesktopWidgetMaterial: NSViewRepresentable {
 struct DesktopWidgetRoot: View {
     let kind: DesktopWidgetKind
     @ObservedObject private var service = DesktopWidgetService.shared
+    @ObservedObject private var palette = DesktopWallpaperPalette.shared
 
     var body: some View {
         let widget = service.configuration[kind]
-        let theme = DesktopWidgetTheme(style: widget.style)
+        let sample = widget.style.matchWallpaper
+            ? service.frame(for: kind).flatMap(palette.sample(for:)) : nil
+        let theme = DesktopWidgetTheme(style: widget.style, wallpaper: sample)
         content(widget, theme: theme)
             .foregroundStyle(theme.text)
             .frame(width: widget.size.width - theme.s(28), height: widget.size.height - theme.s(28))
@@ -143,6 +154,9 @@ struct DesktopWidgetRoot: View {
         case .nowPlaying: DesktopNowPlayingWidget(options: widget.nowPlaying, theme: theme)
         case .calendar: DesktopCalendarWidget(options: widget.calendar, theme: theme)
         case .weather: DesktopWeatherWidget(options: widget.weather, theme: theme)
+        case .lyrics: DesktopLyricsWidget(options: widget.lyrics, theme: theme)
+        case .visualizer: DesktopVisualizerWidget(options: widget.visualizer, theme: theme)
+        case .claudeUsage: DesktopClaudeUsageWidget(options: widget.claudeUsage, theme: theme)
         }
     }
 }

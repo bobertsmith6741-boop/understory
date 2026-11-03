@@ -214,7 +214,16 @@ final class DesktopWidgetService: NSObject, ObservableObject, NSWindowDelegate {
         }
 
         let music = configuration[.nowPlaying]
-        NotchMusicService.shared.setHeldByWidgets(music.enabled)
+        let visualizer = configuration[.visualizer].enabled
+        // Lyrics and the visualizer follow the same player as Now playing.
+        NotchMusicService.shared.setHeldByWidgets(music.enabled || configuration[.lyrics].enabled || visualizer)
+        NotchAudioLevelService.shared.setHeldByWidgets(visualizer)
+
+        if configuration.widgets.contains(where: { $0.enabled && $0.style.matchWallpaper }) {
+            DesktopWallpaperPalette.shared.start()
+        } else {
+            DesktopWallpaperPalette.shared.stop()
+        }
         if music.enabled && music.nowPlaying.hideWhenIdle {
             if musicSubscription == nil {
                 musicSubscription = NotchMusicService.shared.$playback
@@ -240,6 +249,10 @@ final class DesktopWidgetService: NSObject, ObservableObject, NSWindowDelegate {
         guard let panel = panels[.nowPlaying] else { return }
         updateVisibility(panel, widget: configuration[.nowPlaying])
     }
+
+    /// Where a widget sits on screen right now, for colors read from the
+    /// wallpaper behind it.
+    func frame(for kind: DesktopWidgetKind) -> NSRect? { panels[kind]?.frame }
 
     // MARK: Actions from the widgets
 

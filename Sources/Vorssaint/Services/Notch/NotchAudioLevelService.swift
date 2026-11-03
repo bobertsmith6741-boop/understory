@@ -26,11 +26,23 @@ final class NotchAudioLevelService: ObservableObject {
     private var silence = NotchAudioLevelSupport.SilenceMemory()
     private var stopWork: DispatchWorkItem?
 
+    /// The desktop visualizer widget reads levels whether or not the island's
+    /// equalizer is on.
+    private(set) var heldByWidgets = false
+
     private init() {}
 
+    func setHeldByWidgets(_ held: Bool) {
+        guard heldByWidgets != held else { return }
+        heldByWidgets = held
+        syncWithPreferences()
+    }
+
     func syncWithPreferences() {
-        enabled = AppFeature.notchLiveEqualizer.isAvailable && NotchSupport.isEnabled()
-            && NotchAudioLevelSupport.isSupported && NotchAudioLevelSupport.isEnabled()
+        let islandWants = AppFeature.notchLiveEqualizer.isAvailable && NotchSupport.isEnabled()
+            && NotchAudioLevelSupport.isEnabled()
+        enabled = (islandWants || heldByWidgets)
+            && NotchAudioLevelSupport.isSupported
             && !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
         if enabled {
             if subscription == nil {

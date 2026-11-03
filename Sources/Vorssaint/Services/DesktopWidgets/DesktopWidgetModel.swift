@@ -7,7 +7,7 @@ import Foundation
 /// The widgets Understory can put on the desktop. The raw value is persisted,
 /// so cases can be added but never renamed.
 enum DesktopWidgetKind: String, Codable, CaseIterable, Identifiable {
-    case clock, stats, nowPlaying, calendar, weather
+    case clock, stats, nowPlaying, lyrics, visualizer, calendar, weather, claudeUsage
 
     var id: String { rawValue }
 
@@ -16,8 +16,11 @@ enum DesktopWidgetKind: String, Codable, CaseIterable, Identifiable {
         case .clock: return "Clock"
         case .stats: return "System stats"
         case .nowPlaying: return "Now playing"
+        case .lyrics: return "Lyrics"
+        case .visualizer: return "Visualizer"
         case .calendar: return "Calendar"
         case .weather: return "Weather"
+        case .claudeUsage: return "Claude usage"
         }
     }
 
@@ -26,8 +29,11 @@ enum DesktopWidgetKind: String, Codable, CaseIterable, Identifiable {
         case .clock: return "clock"
         case .stats: return "cpu"
         case .nowPlaying: return "music.note"
+        case .lyrics: return "quote.bubble"
+        case .visualizer: return "waveform"
         case .calendar: return "calendar"
         case .weather: return "cloud.sun"
+        case .claudeUsage: return "sparkles"
         }
     }
 }
@@ -93,11 +99,15 @@ struct DesktopWidgetStyle: Codable, Equatable {
     var tintHex: String = "#2A1A24"
     var font: DesktopWidgetFont = .rounded
     var shadow: Bool = true
+    /// Text and accent come from the wallpaper behind the widget instead of
+    /// the colors above.
+    var matchWallpaper: Bool = false
 
     init() {}
 
     private enum CodingKeys: String, CodingKey {
-        case scale, backgroundOpacity, cornerRadius, background, accentHex, textHex, tintHex, font, shadow
+        case scale, backgroundOpacity, cornerRadius, background, accentHex, textHex, tintHex, font, shadow,
+             matchWallpaper
     }
 
     init(from decoder: Decoder) throws {
@@ -113,6 +123,7 @@ struct DesktopWidgetStyle: Codable, Equatable {
         tintHex = c.value(.tintHex, d.tintHex)
         font = c.value(.font, d.font)
         shadow = c.value(.shadow, d.shadow)
+        matchWallpaper = c.value(.matchWallpaper, d.matchWallpaper)
     }
 }
 
@@ -248,6 +259,89 @@ struct DesktopWeatherOptions: Codable, Equatable {
     }
 }
 
+enum DesktopLyricsAlignment: String, Codable, CaseIterable, Identifiable {
+    case leading, center
+    var id: String { rawValue }
+    var title: String { self == .leading ? "Left" : "Centered" }
+}
+
+struct DesktopLyricsOptions: Codable, Equatable {
+    /// Lines around the current one; 0 shows only the current line.
+    static let contextRange = 0...3
+    var contextLines = 1
+    var alignment: DesktopLyricsAlignment = .leading
+    /// Highlight the current line in the album cover's color.
+    var albumColor = true
+    var showTrack = true
+
+    init() {}
+
+    private enum CodingKeys: String, CodingKey { case contextLines, alignment, albumColor, showTrack }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = DesktopLyricsOptions()
+        contextLines = min(max(c.value(.contextLines, d.contextLines), Self.contextRange.lowerBound),
+                           Self.contextRange.upperBound)
+        alignment = c.value(.alignment, d.alignment)
+        albumColor = c.value(.albumColor, d.albumColor)
+        showTrack = c.value(.showTrack, d.showTrack)
+    }
+}
+
+enum DesktopVisualizerStyle: String, Codable, CaseIterable, Identifiable {
+    case bars, mirrored, wave, dots
+    var id: String { rawValue }
+    var title: String {
+        switch self {
+        case .bars: return "Bars"
+        case .mirrored: return "Mirrored"
+        case .wave: return "Wave"
+        case .dots: return "Dots"
+        }
+    }
+}
+
+struct DesktopVisualizerOptions: Codable, Equatable {
+    static let barRange = 8...48
+    var style: DesktopVisualizerStyle = .mirrored
+    var barCount = 24
+    var albumColor = true
+    /// A soft glow under the bars in the same color.
+    var glow = true
+
+    init() {}
+
+    private enum CodingKeys: String, CodingKey { case style, barCount, albumColor, glow }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = DesktopVisualizerOptions()
+        style = c.value(.style, d.style)
+        barCount = min(max(c.value(.barCount, d.barCount), Self.barRange.lowerBound), Self.barRange.upperBound)
+        albumColor = c.value(.albumColor, d.albumColor)
+        glow = c.value(.glow, d.glow)
+    }
+}
+
+struct DesktopClaudeUsageOptions: Codable, Equatable {
+    var showLimits = true
+    var showToday = true
+    var showWorking = true
+
+    init() {}
+
+    private enum CodingKeys: String, CodingKey { case showLimits, showToday, showWorking }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = DesktopClaudeUsageOptions()
+        showLimits = c.value(.showLimits, d.showLimits)
+        showToday = c.value(.showToday, d.showToday)
+        showWorking = c.value(.showWorking, d.showWorking)
+    }
+}
+
 struct DesktopWidget: Codable, Equatable, Identifiable {
     var kind: DesktopWidgetKind
     var enabled: Bool
@@ -261,6 +355,9 @@ struct DesktopWidget: Codable, Equatable, Identifiable {
     var nowPlaying = DesktopNowPlayingOptions()
     var calendar = DesktopCalendarOptions()
     var weather = DesktopWeatherOptions()
+    var lyrics = DesktopLyricsOptions()
+    var visualizer = DesktopVisualizerOptions()
+    var claudeUsage = DesktopClaudeUsageOptions()
 
     var id: DesktopWidgetKind { kind }
 
@@ -275,7 +372,8 @@ struct DesktopWidget: Codable, Equatable, Identifiable {
     }
 
     private enum CodingKeys: String, CodingKey {
-        case kind, enabled, originX, originY, style, clock, stats, nowPlaying, calendar, weather
+        case kind, enabled, originX, originY, style, clock, stats, nowPlaying, calendar, weather,
+             lyrics, visualizer, claudeUsage
     }
 
     init(from decoder: Decoder) throws {
@@ -290,6 +388,9 @@ struct DesktopWidget: Codable, Equatable, Identifiable {
         nowPlaying = c.value(.nowPlaying, DesktopNowPlayingOptions())
         calendar = c.value(.calendar, DesktopCalendarOptions())
         weather = c.value(.weather, DesktopWeatherOptions())
+        lyrics = c.value(.lyrics, DesktopLyricsOptions())
+        visualizer = c.value(.visualizer, DesktopVisualizerOptions())
+        claudeUsage = c.value(.claudeUsage, DesktopClaudeUsageOptions())
     }
 
     /// The size the widget draws at, before any scale. Every view lays out
@@ -306,6 +407,11 @@ struct DesktopWidget: Codable, Equatable, Identifiable {
         case .nowPlaying: return CGSize(width: 340, height: nowPlaying.showControls ? 140 : 108)
         case .calendar: return CGSize(width: 290, height: 236)
         case .weather: return CGSize(width: 320, height: weather.showForecast ? 190 : 120)
+        case .lyrics:
+            let lines = CGFloat(1 + 2 * lyrics.contextLines)
+            return CGSize(width: 420, height: 64 + lines * 30 + (lyrics.showTrack ? 22 : 0))
+        case .visualizer: return CGSize(width: 340, height: 130)
+        case .claudeUsage: return CGSize(width: 290, height: 200)
         }
     }
 

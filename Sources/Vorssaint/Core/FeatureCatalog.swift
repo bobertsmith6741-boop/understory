@@ -341,8 +341,8 @@ extension AppFeature {
         case .notchAgents: return []
         // It only draws, and hears of what happens from the island itself.
         case .notchMascot: return []
-        // Only the Calendar widget reads anything protected.
-        case .desktopWidgets: return [.calendar]
+        // The Calendar widget reads events; the Visualizer hears the player.
+        case .desktopWidgets: return [.calendar, .audioCapture]
         // The bars read the player's own audio output, which macOS gates
         // behind the same permission the mixer and the recorder ask for.
         case .notchLiveEqualizer: return [.audioCapture]
@@ -534,6 +534,9 @@ extension AppFeature {
             case (.desktopWidgets, .calendar):
                 return DesktopWidgetConfiguration.decode(dataFor(DefaultsKey.desktopWidgetsConfiguration))
                     .isEnabled(.calendar)
+            case (.desktopWidgets, .audioCapture):
+                return DesktopWidgetConfiguration.decode(dataFor(DefaultsKey.desktopWidgetsConfiguration))
+                    .isEnabled(.visualizer)
             case (.notchCalendar, .calendar):
                 return isAvailable(.notch) && boolFor(DefaultsKey.notchEnabled)
                     && !(stringFor(DefaultsKey.notchHiddenModules) ?? "").split(separator: ",").contains("calendar")

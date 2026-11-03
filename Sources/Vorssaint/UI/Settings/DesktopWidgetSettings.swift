@@ -77,6 +77,11 @@ struct DesktopWidgetSettingsSections: View {
         ColorPicker("Text color", selection: color(kind, \.style.textHex), supportsOpacity: false)
         ColorPicker("Accent color", selection: color(kind, \.style.accentHex), supportsOpacity: false)
         Toggle("Shadow", isOn: binding(kind, \.style.shadow))
+        Toggle("Match wallpaper colors", isOn: binding(kind, \.style.matchWallpaper))
+        if service.configuration[kind].style.matchWallpaper {
+            Text("Text and accent follow the wallpaper behind the widget, so the colors above are set aside.")
+                .font(.caption).foregroundStyle(.secondary)
+        }
         Button("Reset look") { service.configuration[kind].style = DesktopWidgetStyle() }
     }
 
@@ -89,6 +94,9 @@ struct DesktopWidgetSettingsSections: View {
         case .nowPlaying: nowPlayingOptions
         case .calendar: calendarOptions
         case .weather: DesktopWeatherPlaceRow(service: service)
+        case .lyrics: lyricsOptions
+        case .visualizer: visualizerOptions
+        case .claudeUsage: claudeOptions
         }
     }
 
@@ -124,6 +132,41 @@ struct DesktopWidgetSettingsSections: View {
         Toggle("Album glow", isOn: binding(.nowPlaying, \.nowPlaying.artworkGlow))
         Toggle("Playback controls", isOn: binding(.nowPlaying, \.nowPlaying.showControls))
         Toggle("Hide when nothing plays", isOn: binding(.nowPlaying, \.nowPlaying.hideWhenIdle))
+    }
+
+    @ViewBuilder private var lyricsOptions: some View {
+        Stepper("Lines around the current one: \(service.configuration[.lyrics].lyrics.contextLines)",
+                value: binding(.lyrics, \.lyrics.contextLines), in: DesktopLyricsOptions.contextRange)
+        Picker("Alignment", selection: binding(.lyrics, \.lyrics.alignment)) {
+            ForEach(DesktopLyricsAlignment.allCases) { Text($0.title).tag($0) }
+        }
+        Toggle("Light up in the album color", isOn: binding(.lyrics, \.lyrics.albumColor))
+        Toggle("Song and artist", isOn: binding(.lyrics, \.lyrics.showTrack))
+        Text("Uses the Dynamic Island's lyrics, so Show lyrics needs to be on there.")
+            .font(.caption).foregroundStyle(.secondary)
+    }
+
+    @ViewBuilder private var visualizerOptions: some View {
+        Picker("Style", selection: binding(.visualizer, \.visualizer.style)) {
+            ForEach(DesktopVisualizerStyle.allCases) { Text($0.title).tag($0) }
+        }
+        LabeledContent("Bars: \(service.configuration[.visualizer].visualizer.barCount)") {
+            Slider(value: Binding(
+                get: { Double(service.configuration[.visualizer].visualizer.barCount) },
+                set: { service.configuration[.visualizer].visualizer.barCount = Int($0.rounded()) }),
+                   in: Double(DesktopVisualizerOptions.barRange.lowerBound)...Double(DesktopVisualizerOptions.barRange.upperBound),
+                   step: 1)
+        }
+        Toggle("Album color", isOn: binding(.visualizer, \.visualizer.albumColor))
+        Toggle("Glow", isOn: binding(.visualizer, \.visualizer.glow))
+        Text("Listens only to the music player's own output, never stores or sends audio. macOS asks for permission the first time.")
+            .font(.caption).foregroundStyle(.secondary)
+    }
+
+    @ViewBuilder private var claudeOptions: some View {
+        Toggle("Usage limits", isOn: binding(.claudeUsage, \.claudeUsage.showLimits))
+        Toggle("Today's tokens", isOn: binding(.claudeUsage, \.claudeUsage.showToday))
+        Toggle("Working status", isOn: binding(.claudeUsage, \.claudeUsage.showWorking))
     }
 
     @ViewBuilder private var calendarOptions: some View {
