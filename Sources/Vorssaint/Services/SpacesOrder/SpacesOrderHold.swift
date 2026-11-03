@@ -215,7 +215,7 @@ final class SpacesOrderHold {
     private let defaults: UserDefaults
     private let system: SpacesOrderSystem
     /// Serial, so preference writes and a restart never overlap.
-    private let queue = DispatchQueue(label: "com.vorssaint.spaces-order")
+    private let queue = DispatchQueue(label: "dev.understory.spaces-order")
     private let queueKey = DispatchSpecificKey<Bool>()
     /// A newer request invalidates a reply before its queued work starts. The
     /// main-thread toggle write can notify observers that request another sync.
@@ -497,7 +497,7 @@ final class SpacesOrderHold {
                     watch(isWanted)
                 }
             }
-            Self.log.info("Space rearranging was turned back on outside Vorssaint; fixed order turned off")
+            Self.log.info("Space rearranging was turned back on outside Understory; fixed order turned off")
         }
     }
 

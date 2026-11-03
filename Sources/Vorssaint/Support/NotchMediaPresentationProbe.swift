@@ -78,7 +78,7 @@ enum NotchMediaPresentationProbe {
         let app = NSApplication.shared
         app.setActivationPolicy(.prohibited)
         guard let screen = NSScreen.main else { print("MEDIA MOTION FAILED: no display"); exit(1) }
-        let domain = "com.vorssaint.tests.media-motion.\(UUID().uuidString)"
+        let domain = "dev.understory.tests.media-motion.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: domain)!
         defaults.register(defaults: Defaults.registeredDefaults)
         defaults.set(CommandLine.arguments.contains("--glass"), forKey: DefaultsKey.notchLiquidGlassEnabled)

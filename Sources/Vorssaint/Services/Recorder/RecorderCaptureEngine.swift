@@ -39,7 +39,7 @@ final class RecorderCaptureEngine: NSObject {
 
     weak var delegate: RecorderCaptureEngineDelegate?
 
-    private let queue = DispatchQueue(label: "com.vorssaint.recorder.capture",
+    private let queue = DispatchQueue(label: "dev.understory.recorder.capture",
                                       qos: .userInitiated)
     private let lifecycleLock = NSLock()
     private var lifecycle = RecorderCaptureLifecycle()
@@ -243,7 +243,7 @@ final class RecorderMicrophoneCapture: NSObject,
                                        @unchecked Sendable {
     var onSample: ((CMSampleBuffer) -> Void)?
 
-    private let queue = DispatchQueue(label: "com.vorssaint.recorder.microphone",
+    private let queue = DispatchQueue(label: "dev.understory.recorder.microphone",
                                       qos: .userInitiated)
     private let session = AVCaptureSession()
     private var targetClock: CMClock?

@@ -43,7 +43,7 @@ final class AppUpdatesService: ObservableObject {
     @Published private(set) var hasCheckedThisSession = false
     @Published private(set) var lastError: String?
 
-    private let workQueue = DispatchQueue(label: "com.vorssaint.appupdates", qos: .utility)
+    private let workQueue = DispatchQueue(label: "dev.understory.appupdates", qos: .utility)
     private lazy var lookupSession: URLSession = {
         let configuration = URLSessionConfiguration.ephemeral
         configuration.timeoutIntervalForRequest = 10
@@ -867,7 +867,7 @@ final class AppUpdatesService: ObservableObject {
     /// package manager replace a running bundle is exactly what that updater
     /// exists to do safely.
     private static func isOwnBundle(_ bundleID: String) -> Bool {
-        bundleID == Bundle.main.bundleIdentifier || bundleID.hasPrefix("com.vorssaint")
+        bundleID == Bundle.main.bundleIdentifier || bundleID.hasPrefix("dev.understory")
     }
 
     private static let ownPackageTokens: Set<String> = ["vorssaint", "vorssaint@beta", "vorssaint-beta"]

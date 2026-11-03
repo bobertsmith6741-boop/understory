@@ -26,7 +26,7 @@ enum SystemMonitorPlanTests {
     }
 
     static func run(_ suite: TestSuite) {
-        let domain = "com.vorssaint.tests.system-monitor-plan"
+        let domain = "dev.understory.tests.system-monitor-plan"
         let defaults = UserDefaults(suiteName: domain)!
         defaults.removePersistentDomain(forName: domain)
         defer { defaults.removePersistentDomain(forName: domain) }

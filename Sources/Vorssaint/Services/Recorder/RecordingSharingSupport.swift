@@ -45,8 +45,10 @@ enum RecordingSharingSupport {
         let audioBitRate: Int
     }
 
-    static let productionEndpoint = URL(string: "https://screenshots.vorssaint.com")!
-    static let developerBundleIdentifier = "com.vorssaint.utils.dev"
+    // Fork: Vorssaint's hosted link service is not ours to use. `.invalid` never resolves,
+    // so sharing fails safely until Understory has its own server.
+    static let productionEndpoint = URL(string: "https://sharing.understory.invalid")!
+    static let developerBundleIdentifier = "dev.understory.app.dev"
     /// Leaves transport headroom below the public 100 MB request ceiling.
     static let maximumUploadBytes = 96_000_000
     static let targetUploadBytes = 90_000_000

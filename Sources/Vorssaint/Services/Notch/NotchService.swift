@@ -284,7 +284,7 @@ final class NotchService: ObservableObject {
     private var menuBarMeasurements = NotchMenuBarMeasurements()
     private var screenRefreshWork: DispatchWorkItem?
     private var preferenceSyncWork: DispatchWorkItem?
-    private let menuSpaceQueue = DispatchQueue(label: "com.vorssaint.notch-menu-space", qos: .utility)
+    private let menuSpaceQueue = DispatchQueue(label: "dev.understory.notch-menu-space", qos: .utility)
     /// Set while the live window is on its way to another display, so the copy
     /// there stays up until that window has been drawn for it and ordered in.
     private var mirrorHeldForArrival: CGDirectDisplayID?
@@ -920,7 +920,7 @@ final class NotchService: ObservableObject {
     }
     /// A detail's title, the app panel's, or the island's own with no sections.
     var detailTitle: String {
-        if showingAppPanel { return "Vorssaint" }
+        if showingAppPanel { return "Understory" }
         let language = L10n.shared.language
         guard let metric = selectedMetric else { return FeatureStrings.notch(language).title }
         // The fan card opens Fan Control, so its page shares that title.

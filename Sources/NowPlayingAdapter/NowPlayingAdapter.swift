@@ -116,7 +116,7 @@ public func vorssaintNowPlayingGet() {
         NotchNativeQueue.observe([:])
         return
     }
-    let queue = DispatchQueue(label: "com.vorssaint.now-playing-adapter")
+    let queue = DispatchQueue(label: "dev.understory.now-playing-adapter")
     let group = DispatchGroup()
     let lock = NSLock()
     var reply: [String: Any] = [:]
@@ -282,7 +282,7 @@ public func vorssaintNowPlayingWatch() {
     }
     watching = true
     register(.main)
-    let reader = DispatchQueue(label: "com.vorssaint.now-playing-watch")
+    let reader = DispatchQueue(label: "dev.understory.now-playing-watch")
     var pending: DispatchWorkItem?
     let names = ["kMRMediaRemoteNowPlayingInfoDidChangeNotification",
                  "kMRMediaRemoteNowPlayingApplicationDidChangeNotification",

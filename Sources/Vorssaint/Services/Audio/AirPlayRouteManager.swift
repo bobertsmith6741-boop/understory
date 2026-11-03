@@ -721,7 +721,7 @@ final class AirPlayStreamRegistration: @unchecked Sendable {
 /// of them never read the mixing source at once. `stop()` returns only after a
 /// step that is already running has finished, and no step starts afterwards.
 final class AirPlayFeedDriver: @unchecked Sendable {
-    static let sharedQueue = DispatchQueue(label: "com.vorssaint.utils.airplay.render", qos: .userInitiated)
+    static let sharedQueue = DispatchQueue(label: "dev.understory.app.airplay.render", qos: .userInitiated)
     private static let queueKey = DispatchSpecificKey<Void>()
 
     private let queue: DispatchQueue

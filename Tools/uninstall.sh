@@ -9,7 +9,7 @@
 # Also clears the pre-rename "Vorssaint Utils.app" if it is still around.
 set -uo pipefail
 
-BUNDLE="com.vorssaint.utils"
+BUNDLE="dev.understory.app"
 APP="/Applications/Vorssaint.app"
 LEGACY_APP="/Applications/Vorssaint Utils.app"
 

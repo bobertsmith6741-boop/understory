@@ -1,3 +1,23 @@
+# Understory 🌿
+
+> **Understory is an unofficial fork of [Vorssaint](https://github.com/vorssaint/vorssaint-utils)**
+> by the Vorssaint contributors, licensed under GPL-3.0-or-later. It is not affiliated with or
+> endorsed by Vorssaint. All original copyright notices are preserved in the source.
+>
+> Differences from upstream:
+> - New name, icon, bundle ID (`dev.understory.app`) and signing identity, so it can run
+>   next to the official app without sharing settings or data.
+> - Auto-updates are disabled (the updater pointed at official Vorssaint releases).
+> - Hosted services that belong to Vorssaint (expiring screenshot/recording links and the
+>   in-app feedback inbox) are disabled.
+>
+> Build: `./build.sh` (Xcode Command Line Tools only), or `./build.sh --install` to put
+> `Understory.app` in /Applications.
+
+---
+
+## Upstream README
+
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="docs/assets/readme/logo-dark.svg">

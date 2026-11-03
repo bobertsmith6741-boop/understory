@@ -5,8 +5,16 @@ import Foundation
 
 /// Static identity of the app, shared by UI, notifications and tooling.
 enum AppInfo {
-    static let name = "Vorssaint"
-    static let copyright = "© 2026 Vorssaint"
+    static let name = "Understory"
+    static let copyright = "© 2026 Understory contributors · based on Vorssaint (GPL-3.0)"
+    /// Upstream project this fork is based on (credited in About, per GPL-3.0).
+    static let upstreamURL = URL(string: "https://github.com/vorssaint/vorssaint-utils")!
+
+    /// Understory is an unofficial fork. It must never pull official Vorssaint
+    /// releases over itself, and never uses Vorssaint's hosted services
+    /// (screenshot/recording links, feedback inbox).
+    static let isFork = true
+    static var updatesDisabled: Bool { isDeveloperBuild || isFork }
     static let websiteURL = URL(string: "https://vorssaint.com")!
     static let repositoryURL = URL(string: "https://github.com/vorssaint/vorssaint-utils")!
     static let coffeeURL = URL(string: "https://buymeacoffee.com/vorssaint")!

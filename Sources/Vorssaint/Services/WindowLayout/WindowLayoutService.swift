@@ -78,7 +78,7 @@ final class WindowLayoutService: ObservableObject {
     /// drops it.
     private var edgeSnapStillCheckGeneration = 0
     private var edgeSnapStillCheckPending = false
-    private let edgeSnapResolveQueue = DispatchQueue(label: "com.vorssaint.edge-snap-resolve",
+    private let edgeSnapResolveQueue = DispatchQueue(label: "dev.understory.edge-snap-resolve",
                                                      qos: .userInitiated)
     private var edgeSnapPreviewPanel: NSPanel?
     private var edgeSnapPreviewGeneration = 0
@@ -2437,7 +2437,7 @@ final class WindowLayoutService: ObservableObject {
     /// where the pointer no longer is. Coalescing, because a slow write must
     /// not build a backlog the window then animates through after the drag has
     /// finished: only the newest position is ever pending.
-    private let gestureApplyQueue = DispatchQueue(label: "com.vorssaint.window-gesture-apply",
+    private let gestureApplyQueue = DispatchQueue(label: "dev.understory.window-gesture-apply",
                                                   qos: .userInteractive)
     private let gestureApplyLock = NSLock()
     private var pendingGestureApply: (gesture: WindowPointerGesture, pointer: CGPoint)?

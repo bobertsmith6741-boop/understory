@@ -17,7 +17,7 @@ import VideoToolbox
 /// and awaited, so no buffer can still be in flight.
 final class RecorderWriter {
 
-    private static let preparationQueue = DispatchQueue(label: "com.vorssaint.recorder.prepare",
+    private static let preparationQueue = DispatchQueue(label: "dev.understory.recorder.prepare",
                                                          qos: .userInitiated)
     private static let log = Logger(subsystem: Bundle.main.bundleIdentifier ?? "vorssaint",
                                     category: "recorder")

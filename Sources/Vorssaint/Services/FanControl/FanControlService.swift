@@ -20,7 +20,7 @@ final class FanControlService: ObservableObject {
     @Published private(set) var error: FanControlErrorCode?
     @Published private(set) var isWorking = false
 
-    private let probeQueue = DispatchQueue(label: "com.vorssaint.fan-control.probe",
+    private let probeQueue = DispatchQueue(label: "dev.understory.fan-control.probe",
                                            qos: .utility)
     private var probeHardware: FanControlHardware?
     private var connection: NSXPCConnection?

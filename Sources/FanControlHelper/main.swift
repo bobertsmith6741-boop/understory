@@ -82,7 +82,7 @@ private final class FanControlOwnership {
 
 private final class FanControlController {
     private let log = Logger(subsystem: FanControlIdentifiers.helperID, category: "FanControl")
-    private let queue = DispatchQueue(label: "com.vorssaint.fan-control.helper")
+    private let queue = DispatchQueue(label: "dev.understory.fan-control.helper")
     private let ownership = FanControlOwnership()
     private var hardware: FanControlHardware?
     private var owner: UUID?

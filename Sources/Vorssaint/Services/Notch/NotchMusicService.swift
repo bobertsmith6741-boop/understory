@@ -86,7 +86,7 @@ final class NotchMusicService: ObservableObject {
     }
     private var automationAction: AutomationAction?
     private var awaitingAutomationValidation = false
-    private let queue = DispatchQueue(label: "com.vorssaint.notch-music", qos: .utility)
+    private let queue = DispatchQueue(label: "dev.understory.notch-music", qos: .utility)
     private lazy var commandWriter = NotchMusicCommandWriter { [queue = self.queue] action in queue.async(execute: action) }
 
     private init() {}
@@ -728,7 +728,7 @@ final class NotchMusicService: ObservableObject {
 /// Pipe callbacks may split a UTF-8 character or join several replies. Parsing
 /// stays serial and bounded before any metadata reaches the main thread.
 private final class NotchMusicPipeReader {
-    private let queue = DispatchQueue(label: "com.vorssaint.notch-music-reader", qos: .utility)
+    private let queue = DispatchQueue(label: "dev.understory.notch-music-reader", qos: .utility)
     private var buffer = Data()
     private let receive: (Data) -> Void
     init(receive: @escaping (Data) -> Void) { self.receive = receive }

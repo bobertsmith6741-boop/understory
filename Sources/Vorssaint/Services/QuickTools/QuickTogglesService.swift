@@ -41,7 +41,7 @@ final class QuickTogglesService: ObservableObject {
     @Published private(set) var othersShortcutRegistrationFailed = false
     @Published private(set) var quitAllExceptions: [String] = []
 
-    private let workQueue = DispatchQueue(label: "com.vorssaint.utils.quick-toggles", qos: .userInitiated)
+    private let workQueue = DispatchQueue(label: "dev.understory.app.quick-toggles", qos: .userInitiated)
     private let hotkey = QuickToolHotkey(id: 63)
     private let othersHotkey = QuickToolHotkey(id: 62)
 

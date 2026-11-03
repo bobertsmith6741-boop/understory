@@ -144,7 +144,7 @@ final class NetworkSampler {
         return result
     }
 
-    private static let store = SCDynamicStoreCreate(nil, "com.vorssaint.utils.network-sampler" as CFString, nil, nil)
+    private static let store = SCDynamicStoreCreate(nil, "dev.understory.app.network-sampler" as CFString, nil, nil)
 
     /// The interfaces the system routes IPv4 and IPv6 through.
     private static func primaryInterfaces() -> [String] {

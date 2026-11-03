@@ -67,7 +67,7 @@ final class UpdateService: ObservableObject {
         }
         // The local dev build never auto-updates, but can simulate the
         // "update available" UI via the `simulateUpdate` default, for testing.
-        if AppInfo.isDeveloperBuild {
+        if AppInfo.updatesDisabled {
             if UserDefaults.standard.bool(forKey: DefaultsKey.simulateUpdate) {
                 let simulatedVersion = AppInfo.isBeta ? "9.9.9-beta.1" : "9.9.9"
                 state = .available(version: simulatedVersion)
@@ -100,7 +100,7 @@ final class UpdateService: ObservableObject {
     // MARK: - Check
 
     func check(manual: Bool) {
-        if AppInfo.isDeveloperBuild {
+        if AppInfo.updatesDisabled {
             // No real update target; reflect the simulation default so the
             // notification UI can be exercised locally.
             if UserDefaults.standard.bool(forKey: DefaultsKey.simulateUpdate) {
@@ -124,7 +124,7 @@ final class UpdateService: ObservableObject {
 
         var request = URLRequest(url: URL(string: endpoint)!)
         request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
-        request.setValue("Vorssaint/\(AppInfo.version)", forHTTPHeaderField: "User-Agent")
+        request.setValue("Understory/\(AppInfo.version)", forHTTPHeaderField: "User-Agent")
         request.cachePolicy = .reloadIgnoringLocalCacheData
 
         URLSession.shared.dataTask(with: request) { [weak self] data, _, error in
@@ -193,7 +193,7 @@ final class UpdateService: ObservableObject {
     /// or the panel opens, so a new release surfaces promptly without hammering the
     /// API. The hourly timer is the floor; this makes it feel immediate.
     func checkIfStale(maxAge: TimeInterval = 15 * 60) {
-        if AppInfo.isDeveloperBuild { return }
+        if AppInfo.updatesDisabled { return }
         guard autoCheckEnabled else { return }
         switch state {
         case .checking, .downloading, .installing: return
@@ -206,7 +206,7 @@ final class UpdateService: ObservableObject {
     // MARK: - Download & install
 
     func downloadAndInstall() {
-        if AppInfo.isDeveloperBuild { return }  // never replace the local dev build over itself
+        if AppInfo.updatesDisabled { return }  // never replace the local dev build over itself
         guard let downloadURL else { return }
         // Pre-flight BEFORE spending the download: a translocated app or one
         // running from a read-only volume (the mounted DMG) can never be
@@ -277,7 +277,7 @@ final class UpdateService: ObservableObject {
                     }
                     // Move out of the session's scratch space before handing off.
                     let dmgURL = FileManager.default.temporaryDirectory
-                        .appendingPathComponent("Vorssaint-update.dmg")
+                        .appendingPathComponent("Understory-update.dmg")
                     try? FileManager.default.removeItem(at: dmgURL)
                     do {
                         try FileManager.default.moveItem(at: tempURL, to: dmgURL)
@@ -467,7 +467,7 @@ final class UpdateService: ObservableObject {
         let s = L10n.shared.s
         Notifier.post(title: s.updateNotifyTitle,
                       body: "\(s.updateInstallFailedBody) (\(code))")
-        if !AppInfo.isDeveloperBuild {
+        if !AppInfo.updatesDisabled {
             DispatchQueue.main.asyncAfter(deadline: .now() + 3) { [weak self] in
                 self?.check(manual: false)
             }
@@ -505,7 +505,7 @@ final class BoundedUpdateDownloadDelegate: NSObject, URLSessionDataDelegate {
         self.progress = progress
         self.completion = completion
         let temporaryFileURL = FileManager.default.temporaryDirectory
-            .appendingPathComponent("Vorssaint-update-\(UUID().uuidString).download")
+            .appendingPathComponent("Understory-update-\(UUID().uuidString).download")
         fileURL = temporaryFileURL
         guard FileManager.default.createFile(atPath: temporaryFileURL.path, contents: nil) else {
             throw CocoaError(.fileWriteUnknown)

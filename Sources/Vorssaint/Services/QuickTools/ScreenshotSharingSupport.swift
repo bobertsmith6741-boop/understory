@@ -81,8 +81,10 @@ enum ScreenshotSharingSupport {
         return true
     }
 
-    static let productionEndpoint = URL(string: "https://screenshots.vorssaint.com")!
-    static let developerBundleIdentifier = "com.vorssaint.utils.dev"
+    // Fork: Vorssaint's hosted link service is not ours to use. `.invalid` never resolves,
+    // so sharing fails safely until Understory has its own server.
+    static let productionEndpoint = URL(string: "https://sharing.understory.invalid")!
+    static let developerBundleIdentifier = "dev.understory.app.dev"
     static let maximumUploadBytes = 25 * 1_024 * 1_024
 
     static func endpoint(bundleIdentifier: String?, developerOverride: String?) -> URL {
