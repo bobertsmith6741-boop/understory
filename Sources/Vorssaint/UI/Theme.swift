@@ -121,9 +121,9 @@ enum PanelSurface {
 }
 
 func sectionTitle(_ text: String) -> some View {
-    Text(text.uppercased())
-        .font(.system(size: 10, weight: .semibold))
-        .kerning(0.5)
+    // Understory: sentence case, as macOS 26's own panels title their sections.
+    Text(text.localizedCapitalized)
+        .font(.system(size: 12, weight: .semibold))
         .foregroundStyle(.secondary)
 }
 
@@ -153,14 +153,15 @@ private struct PanelCardModifier: ViewModifier {
             content.padding(padded ? 12 : 0).modifier(NotchControlSurface(cornerRadius: 18, interactive: interactive))
         } else {
         content
-            .padding(padded ? 10 : 0)
+            .padding(padded ? 12 : 0)
             .background(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
                     .fill(PanelSurface.cardFill(for: colorScheme))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .strokeBorder(PanelSurface.border(for: colorScheme), lineWidth: 0.7)
+                // Understory: a specular rim, brighter at the top, like light on glass.
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .strokeBorder(PanelSurface.rimHighlight(for: colorScheme), lineWidth: 0.8)
             )
         }
     }
@@ -201,7 +202,7 @@ private struct PanelGlassSurface: View {
                 .glassEffect(.regular, in: Rectangle())
                 .overlay(
                     Rectangle()
-                        .fill(PanelSurface.baseFill(for: colorScheme).opacity(colorScheme == .light ? 0.35 : 0.45))
+                        .fill(PanelSurface.baseFill(for: colorScheme).opacity(colorScheme == .light ? 0.22 : 0.2))  // Understory: let the glass through
                 )
         } else {
             standardSurface

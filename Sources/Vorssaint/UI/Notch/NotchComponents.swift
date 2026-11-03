@@ -710,9 +710,13 @@ struct NotchControlSurface: ViewModifier {
         Group {
             if glassSurface {
                 content
-                    .background(.white.opacity(selected ? 0.11 : 0.045), in: shape)
+                    .background(.white.opacity(selected ? 0.12 : 0.06), in: shape)
                     .overlay {
-                        shape.strokeBorder(.white.opacity(selected ? 0.16 : 0.065), lineWidth: 0.5)
+                        // Understory: specular rim, bright at the top edge.
+                        shape.strokeBorder(LinearGradient(colors: [.white.opacity(selected ? 0.34 : 0.24),
+                                                                   .white.opacity(0.04)],
+                                                          startPoint: .top, endPoint: .bottom),
+                                           lineWidth: 0.75)
                             .allowsHitTesting(false)
                     }
             } else {
