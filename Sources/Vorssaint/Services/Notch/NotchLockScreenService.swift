@@ -167,7 +167,12 @@ final class NotchLockScreenService {
     }
 
     private func startSources(_ gates: NotchLockScreenModel.Gates) {
-        if gates.music { NotchMusicService.shared.start() }
+        if gates.music {
+            NotchMusicService.shared.start()
+            // Understory: the player falls back on the wallpaper's colour for
+            // covers without one of their own.
+            DesktopWallpaperPalette.shared.setHeld("lockScreen", true)
+        }
         if gates.downloads { NotchDownloadService.shared.syncWithPreferences() }
         // An event chosen from its menu counts down with the countdown for every event off.
         if gates.countdown || gates.timeLeft || !NotchCalendarSupport.chosenCountdowns().isEmpty {
@@ -178,6 +183,8 @@ final class NotchLockScreenService {
 
     private func hide(unlocking: Bool, stopsSources: Bool) {
         if stopsSources, !scene.isEmpty {
+            DesktopWallpaperPalette.shared.setHeld("lockScreen", false)
+            NotchMusicService.shared.setQueueVisible(false)
             NotchMusicService.shared.stop()
             NotchDownloadService.shared.stop()
             NotchCalendarService.shared.stop()

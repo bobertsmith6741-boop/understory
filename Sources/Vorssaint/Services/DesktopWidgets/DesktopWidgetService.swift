@@ -219,11 +219,8 @@ final class DesktopWidgetService: NSObject, ObservableObject, NSWindowDelegate {
         NotchMusicService.shared.setHeldByWidgets(music.enabled || configuration[.lyrics].enabled || visualizer)
         NotchAudioLevelService.shared.setHeldByWidgets(visualizer)
 
-        if configuration.widgets.contains(where: { $0.enabled && $0.style.matchWallpaper }) {
-            DesktopWallpaperPalette.shared.start()
-        } else {
-            DesktopWallpaperPalette.shared.stop()
-        }
+        DesktopWallpaperPalette.shared.setHeld(
+            "widgets", configuration.widgets.contains(where: { $0.enabled && $0.style.matchWallpaper }))
         if music.enabled && music.nowPlaying.hideWhenIdle {
             if musicSubscription == nil {
                 musicSubscription = NotchMusicService.shared.$playback

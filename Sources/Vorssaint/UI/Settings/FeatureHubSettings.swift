@@ -665,6 +665,14 @@ private struct FeatureHubRow: View {
 
     private var installed: Bool { feature.isAvailable }
 
+    /// Understory: installed, but none of its switches is on, so it is
+    /// doing nothing. Features without a switch of their own never show it.
+    private var notInUse: Bool {
+        _ = features.revision
+        return installed && !feature.enabledKeys.isEmpty
+            && !feature.enabledKeys.contains(where: UserDefaults.standard.bool(forKey:))
+    }
+
     private var opensSettings: Bool { installed && feature.hasNavigableSettingsDestination }
 
     /// Extensions still installed under this row's feature; only the Dynamic
@@ -682,7 +690,8 @@ private struct FeatureHubRow: View {
     private var accessibilityTitle: String {
         let title = feature.hubTitle(l10n.s, hub: hub)
         if feature == .notch { return "\(title). \(hub.experimentalBadge)" }
-        return feature.isBeta ? "\(title). \(l10n.s.betaFeatureWarning)" : title
+        let label = notInUse ? "\(title). \(UnderstoryStrings.notInUse(l10n.language))" : title
+        return feature.isBeta ? "\(label). \(l10n.s.betaFeatureWarning)" : label
     }
 
     private var energyLabel: String {
@@ -765,6 +774,15 @@ private struct FeatureHubRow: View {
                             .foregroundStyle(.orange)
                             .background(Capsule().fill(Color.orange.opacity(0.14)))
                             .accessibilityHidden(true)
+                    }
+                    if notInUse {
+                        Text(UnderstoryStrings.notInUse(l10n.language).uppercased())
+                            .font(.system(size: 9, weight: .bold))
+                            .padding(.horizontal, 7)
+                            .padding(.vertical, 3)
+                            .foregroundStyle(.secondary)
+                            .background(Capsule().fill(Color.secondary.opacity(0.14)))
+                            .help(UnderstoryStrings.notInUseHint(l10n.language))
                     }
                     if feature.isBeta {
                         Text(l10n.s.betaBadge)

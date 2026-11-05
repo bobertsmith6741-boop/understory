@@ -91,8 +91,10 @@ enum NotchLockScreenLayout {
     /// From the bottom of the display to the player.
     static let loginClearance: CGFloat = 250
     /// The player's room, with space around its pane for the cover's glow.
-    static let playerWidth: CGFloat = 460
+    /// Understory: wide enough for the cover beside the title and lyrics.
+    static let playerWidth: CGFloat = 660
     static let paneWidth: CGFloat = 404
+    static let widePaneWidth: CGFloat = 600
     /// A title, the timeline and the buttons, the least the player shows.
     static let minimumPlayerHeight: CGFloat = 190
 

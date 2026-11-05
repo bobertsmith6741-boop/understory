@@ -88,6 +88,9 @@ struct NotchLockScreenIsland: View {
 /// Reduce Transparency makes it solid.
 private struct NotchLockScreenGlass: ViewModifier {
     let cornerRadius: CGFloat
+    /// Understory: the cover's colour, washed through the glass so the pane
+    /// takes on the album it plays.
+    var tint: Color? = nil
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     @Environment(\.colorSchemeContrast) private var contrast
 
@@ -96,14 +99,25 @@ private struct NotchLockScreenGlass: ViewModifier {
         content
             .background {
                 if reduceTransparency {
-                    shape.fill(Color(white: 0.12))
+                    ZStack {
+                        shape.fill(Color(white: 0.12))
+                        if let tint { shape.fill(tint.opacity(0.28)) }
+                    }
                 } else {
                     ZStack {
                         glass(shape)
-                        shape.fill(.black.opacity(contrast == .increased ? 0.5 : 0.24))
+                        shape.fill(.black.opacity(contrast == .increased ? 0.5 : 0.28))
+                        if let tint {
+                            shape.fill(LinearGradient(colors: [tint.opacity(0.32), tint.opacity(0.08), .clear],
+                                                      startPoint: .topLeading, endPoint: .bottomTrailing))
+                        }
                     }
                 }
             }
+            .animation(.smooth(duration: 0.8), value: tint)
+            // Understory: the cover's glow and the colours stay inside the
+            // pane instead of spilling onto the wallpaper around it.
+            .clipShape(shape)
             .overlay {
                 shape.strokeBorder(.white.opacity(contrast == .increased ? 0.45 : 0), lineWidth: 0.75)
                     .allowsHitTesting(false)
@@ -159,14 +173,30 @@ struct NotchLockScreenPlayer: View {
     /// What a tap on play or pause asked for, shown at once as the island's
     /// own player shows it, until the player says so.
     @State private var requestedPlaying: Bool?
+    /// Understory: the lyrics opened over the cover, to read back through.
+    @State private var lyricsExpanded = false
+    @ObservedObject private var wallpaper = DesktopWallpaperPalette.shared
+    @ObservedObject private var lyrics = NotchLyricsService.shared
     private var text: RadialMenuFeatureStrings { FeatureStrings.radialMenu(l10n.language) }
-    private var accent: Color { music.artworkTint?.color ?? .white }
+    /// The cover's colour, or the wallpaper's for a cover without one.
+    private var tint: Color? {
+        if let cover = music.artworkTint?.color { return cover }
+        _ = wallpaper.revision
+        return wallpaper.mainAccent.map(Color.init(nsColor:))
+    }
+    private var accent: Color { tint ?? .white }
+    private var hasTimedLyrics: Bool {
+        guard lyricsEnabled, let lyrics = lyrics.lyrics else { return false }
+        return !lyrics.instrumental && !lyrics.lines.isEmpty
+    }
 
     var body: some View {
         let shown = model.showsMusic(music.playback)
         ZStack {
             if shown, let playback = music.playback {
                 ViewThatFits(in: .vertical) {
+                    hero(playback)
+                    wide(playback)
                     player(playback, artwork: 112)
                     player(playback, artwork: 84)
                     compact(playback)
@@ -181,13 +211,131 @@ struct NotchLockScreenPlayer: View {
         .onChange(of: music.playback?.isPlaying) {
             if music.playback?.isPlaying == requestedPlaying { requestedPlaying = nil }
         }
-        .onChange(of: music.playback?.track) { requestedPlaying = nil }
+        .onChange(of: music.playback?.track) {
+            requestedPlaying = nil
+            lyricsExpanded = false
+            loadExtras()
+        }
+        .onChange(of: hasTimedLyrics) { if !hasTimedLyrics { lyricsExpanded = false } }
+        .onAppear(perform: loadExtras)
         // A player that never answers leaves the button as it was.
         .task(id: requestedPlaying) {
             guard requestedPlaying != nil else { return }
             try? await Task.sleep(nanoseconds: 1_500_000_000)
             if !Task.isCancelled { requestedPlaying = nil }
         }
+    }
+
+    /// Understory: the lyrics follow the song here too, from the same
+    /// lyrics, source and offset as the island's Lyrics page.
+    /// The upcoming song comes from the island's own queue, when it is on.
+    private func loadExtras() {
+        guard let playback = music.playback else { return }
+        if lyricsEnabled { NotchLyricsService.shared.update(playback: playback, visible: true) }
+        music.setQueueVisible(true)
+    }
+
+    private func toggleLyrics() {
+        guard hasTimedLyrics else { return }
+        if reduceMotion { lyricsExpanded.toggle() } else { withAnimation(.smooth(duration: 0.4)) { lyricsExpanded.toggle() } }
+    }
+
+    /// Understory: the next song in the player's queue, one quiet line.
+    @ViewBuilder private func upNext() -> some View {
+        if let item = music.upcoming?.items.first {
+            HStack(spacing: 9) {
+                NotchArtwork(image: music.upcomingArtwork[item.id], size: 24)
+                Text(FeatureStrings.notchMusicExtras(l10n.language).queue)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.white.opacity(0.5))
+                Text(item.artist.isEmpty ? item.title : "\(item.title) · \(item.artist)")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.8))
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.top, 6)
+            .transition(.opacity)
+            .accessibilityElement(children: .combine)
+        }
+    }
+
+    private var lyricsEnabled: Bool { NotchLyricsSupport.isEnabled() }
+
+    /// Understory: a tall display stacks a large cover over the title and lyrics.
+    private func hero(_ playback: NotchPlayback) -> some View {
+        VStack(spacing: 0) {
+            Group {
+                if lyricsExpanded {
+                    NotchLockScreenFullLyrics(playback: playback, tint: accent, alignment: .center)
+                        .frame(height: 196)
+                        .onTapGesture(perform: toggleLyrics)
+                } else {
+                    cover(size: 196, playback: playback)
+                }
+            }
+            .padding(.bottom, 18)
+            Text(playback.track.title ?? text.mediaNowPlaying)
+                .font(.system(size: 21, weight: .bold))
+                .lineLimit(1)
+            if let artist = playback.track.artist ?? playback.track.album {
+                Text(artist)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.72))
+                    .lineLimit(1)
+                    .padding(.top, 2)
+            }
+            if lyricsEnabled, !lyricsExpanded {
+                NotchLockScreenLyrics(playback: playback, tint: accent, alignment: .center)
+                    .onTapGesture(perform: toggleLyrics)
+                    .padding(.top, 14)
+            }
+            NotchMusicTimeline(playback: playback, service: music, tint: accent)
+                .padding(.top, 14)
+            transport(playback)
+            upNext()
+        }
+        .pane(width: NotchLockScreenLayout.paneWidth + 40, tint: tint)
+    }
+
+    /// Understory: most displays lay the large cover beside the title and lyrics.
+    private func wide(_ playback: NotchPlayback) -> some View {
+        VStack(spacing: 0) {
+            if lyricsExpanded {
+                NotchLockScreenFullLyrics(playback: playback, tint: accent, alignment: .leading)
+                    .frame(height: 184)
+                    .onTapGesture(perform: toggleLyrics)
+            } else {
+            HStack(alignment: .center, spacing: 24) {
+                cover(size: 184, playback: playback)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(playback.track.title ?? text.mediaNowPlaying)
+                        .font(.system(size: 22, weight: .bold))
+                        .lineLimit(2)
+                    if let artist = playback.track.artist ?? playback.track.album {
+                        Text(artist)
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundStyle(.white.opacity(0.72))
+                            .lineLimit(1)
+                            .padding(.top, 3)
+                    }
+                    if lyricsEnabled {
+                        NotchLockScreenLyrics(playback: playback, tint: accent, alignment: .leading)
+                            .onTapGesture(perform: toggleLyrics)
+                            .padding(.top, 14)
+                    }
+                }
+                .multilineTextAlignment(.leading)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            }
+            NotchMusicTimeline(playback: playback, service: music, tint: accent)
+                .padding(.top, 18)
+            transport(playback)
+            upNext()
+        }
+        .pane(width: NotchLockScreenLayout.widePaneWidth, tint: tint)
     }
 
     private func player(_ playback: NotchPlayback, artwork: CGFloat) -> some View {
@@ -208,7 +356,7 @@ struct NotchLockScreenPlayer: View {
                 .padding(.top, 16)
             transport(playback)
         }
-        .pane()
+        .pane(tint: tint)
     }
 
     /// A short display lays the cover beside the title, as the island's own
@@ -231,12 +379,22 @@ struct NotchLockScreenPlayer: View {
                 .padding(.top, 12)
             transport(playback)
         }
-        .pane()
+        .pane(tint: tint)
     }
 
     private func cover(size: CGFloat, playback: NotchPlayback) -> some View {
         NotchArtwork(image: music.artwork, size: size, source: playback.track)
-            .shadow(color: (music.artworkTint?.color ?? .black).opacity(0.5), radius: size * 0.28, y: size * 0.1)
+            // Understory: a halo of the cover itself, blurred out behind it.
+            .background {
+                if music.artwork != nil {
+                    NotchArtwork(image: music.artwork, size: size, source: playback.track)
+                        .blur(radius: size * 0.12)
+                        .scaleEffect(1.04)
+                        .opacity(0.55)
+                        .allowsHitTesting(false)
+                }
+            }
+            .shadow(color: .black.opacity(0.35), radius: size * 0.08, y: size * 0.04)
             .scaleEffect(playback.isPlaying || reduceMotion ? 1 : 0.92)
             .animation(reduceMotion ? nil : .smooth(duration: 0.35), value: playback.isPlaying)
     }
@@ -282,14 +440,98 @@ struct NotchLockScreenPlayer: View {
 
 private extension View {
     /// The player's pane, as wide as the timeline needs and no wider.
-    func pane() -> some View {
+    func pane(width: CGFloat = NotchLockScreenLayout.paneWidth, tint: Color? = nil) -> some View {
         foregroundStyle(.white)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 26)
             .padding(.vertical, 20)
-            .frame(width: NotchLockScreenLayout.paneWidth)
-            .modifier(NotchLockScreenGlass(cornerRadius: 34))
+            .frame(width: width)
+            .modifier(NotchLockScreenGlass(cornerRadius: 34, tint: tint))
             .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// Understory: the lyric being sung, bright, between the line before it and
+/// the one coming, both dimmed. It keeps its height so the pane never jumps,
+/// and shows nothing for a song without timed lyrics.
+private struct NotchLockScreenLyrics: View {
+    let playback: NotchPlayback
+    let tint: Color
+    let alignment: HorizontalAlignment
+    @ObservedObject private var service = NotchLyricsService.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    static let height: CGFloat = 76
+
+    var body: some View {
+        if let lyrics = service.lyrics, !lyrics.instrumental, !lyrics.lines.isEmpty, playback.hasPosition {
+            TimelineView(.explicit(lyrics.changeDates(for: playback, offset: service.offset, from: .now))) { context in
+                let index = lyrics.activeIndex(at: playback.position(at: context.date), offset: service.offset)
+                VStack(alignment: alignment, spacing: 5) {
+                    line(lyrics, index.map { $0 - 1 }, current: false)
+                    line(lyrics, index, current: true)
+                    line(lyrics, index.map { $0 + 1 } ?? 0, current: false)
+                }
+                .frame(maxWidth: .infinity, alignment: Alignment(horizontal: alignment, vertical: .center))
+                .frame(height: Self.height)
+                .contentShape(Rectangle())
+                .animation(reduceMotion ? nil : .smooth(duration: 0.35), value: index)
+            }
+            .accessibilityHidden(true)
+        }
+    }
+
+    @ViewBuilder private func line(_ lyrics: NotchLyrics, _ index: Int?, current: Bool) -> some View {
+        let text = index.flatMap { lyrics.lines.indices.contains($0) ? lyrics.lines[$0].text : nil } ?? ""
+        Text(text.isEmpty && current ? "♪" : text.isEmpty ? " " : text)
+            .font(.system(size: current ? 17 : 13, weight: current ? .bold : .medium, design: .rounded))
+            .foregroundStyle(current ? tint.opacity(0.98) : .white.opacity(0.45))
+            .lineLimit(1)
+            .truncationMode(.tail)
+            .id("\(current)-\(index ?? -1)")
+            .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 8)))
+    }
+}
+
+/// Understory: every line of the song, opened over the cover with a tap on
+/// the lyrics, the one being sung lit and kept in view. Another tap closes it.
+private struct NotchLockScreenFullLyrics: View {
+    let playback: NotchPlayback
+    let tint: Color
+    let alignment: HorizontalAlignment
+    @ObservedObject private var service = NotchLyricsService.shared
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        if let lyrics = service.lyrics, !lyrics.lines.isEmpty {
+            TimelineView(.explicit(lyrics.changeDates(for: playback, offset: service.offset, from: .now))) { context in
+                let index = lyrics.activeIndex(at: playback.position(at: context.date), offset: service.offset)
+                ScrollViewReader { proxy in
+                    ScrollView(.vertical, showsIndicators: false) {
+                        VStack(alignment: alignment, spacing: 10) {
+                            ForEach(Array(lyrics.lines.enumerated()), id: \.offset) { offset, line in
+                                Text(line.text.isEmpty ? "♪" : line.text)
+                                    .font(.system(size: offset == index ? 19 : 16, weight: .bold, design: .rounded))
+                                    .foregroundStyle(offset == index ? tint : .white.opacity(offset < (index ?? 0) ? 0.35 : 0.55))
+                                    .multilineTextAlignment(alignment == .leading ? .leading : .center)
+                                    .frame(maxWidth: .infinity, alignment: Alignment(horizontal: alignment, vertical: .center))
+                                    .id(offset)
+                            }
+                        }
+                        .padding(.vertical, 70)
+                    }
+                    .mask(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black, location: 0.2),
+                                                 .init(color: .black, location: 0.8), .init(color: .clear, location: 1)],
+                                         startPoint: .top, endPoint: .bottom))
+                    .onAppear { proxy.scrollTo(index ?? 0, anchor: .center) }
+                    .onChange(of: index) {
+                        if reduceMotion { proxy.scrollTo(index ?? 0, anchor: .center) }
+                        else { withAnimation(.smooth(duration: 0.45)) { proxy.scrollTo(index ?? 0, anchor: .center) } }
+                    }
+                }
+            }
+            .contentShape(Rectangle())
+            .accessibilityHidden(true)
+        }
     }
 }
 

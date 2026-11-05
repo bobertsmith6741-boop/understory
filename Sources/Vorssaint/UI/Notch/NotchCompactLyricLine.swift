@@ -135,6 +135,22 @@ enum UnderstoryStrings {
         }
     }
 
+    static func notInUse(_ language: AppLanguage) -> String {
+        switch language {
+        case .ptBR: return "Sem uso"
+        case .es: return "Sin uso"
+        default: return "Not in use"
+        }
+    }
+
+    static func notInUseHint(_ language: AppLanguage) -> String {
+        switch language {
+        case .ptBR: return "Instalado, mas desligado. Abra os ajustes para ligá-lo ou desinstale-o."
+        case .es: return "Instalado, pero apagado. Abre sus ajustes para activarlo o desinstálalo."
+        default: return "Installed, but switched off. Open its settings to turn it on, or uninstall it."
+        }
+    }
+
     static func lyricsUnderNotch(_ language: AppLanguage) -> (title: String, caption: String) {
         switch language {
         case .ptBR: return ("Letra sob o notch", "Mostra a linha atual da letra abaixo da câmera enquanto a música toca.")

@@ -37,6 +37,21 @@ final class DesktopWallpaperPalette: ObservableObject {
 
     private init() {}
 
+    /// Understory: the widgets and the lock screen each hold the palette, and
+    /// it reads the wallpaper while either still does.
+    private var holders = Set<String>()
+
+    func setHeld(_ holder: String, _ held: Bool) {
+        if held { holders.insert(holder) } else { holders.remove(holder) }
+        if holders.isEmpty { stop() } else { start() }
+    }
+
+    /// The most vivid colour of the main display's wallpaper.
+    var mainAccent: NSColor? {
+        guard let screen = NSScreen.screens.first ?? NSScreen.main else { return nil }
+        return grids[screen.displayID]?.accent
+    }
+
     func start() {
         guard !running else { return }
         running = true
