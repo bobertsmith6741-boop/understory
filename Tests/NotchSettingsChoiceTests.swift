@@ -106,7 +106,9 @@ enum NotchSettingsChoiceTests {
             let underIcon = abs(frame.minX - (textColumn - settingsRowTextInset)) <= 0.5
             if !underText, !underIcon {
                 found.insert("a \(type(of: control)) at \(Int(frame.minX)) crowds the title")
-            } else if underIcon, control is NSSegmentedControl || textColumn + frame.width <= width - 16 + 0.5 {
+            // Understory: rows without an icon have one column, so a control
+            // there is under the title.
+            } else if underIcon, settingsRowTextInset > 0, control is NSSegmentedControl || textColumn + frame.width <= width - 16 + 0.5 {
                 found.insert("a \(type(of: control)) under the icon at \(Int(frame.minX)) though it fits under the title")
             }
         }

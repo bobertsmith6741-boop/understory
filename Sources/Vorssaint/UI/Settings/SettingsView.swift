@@ -158,12 +158,15 @@ struct SettingsView: View {
             // real space it was actually given for normal layout, and ~zero
             // when asked for an unconstrained ideal size, breaking the chain.
             GeometryReader { geometry in
-                detail
+                pageWithHeader
                     .settingsSectionFocus(for: router.page)
                     .frame(width: geometry.size.width, height: geometry.size.height, alignment: .top)
+                    // Understory: the pages sit on the window's glass.
+                    .scrollContentBackground(.hidden)
             }
         }
         .navigationSplitViewStyle(.balanced)
+        .background(SettingsGlassBackground().ignoresSafeArea())
         .toolbar {
             // SwiftUI adds its sidebar button only to windows it creates, and
             // this one is AppKit's. Without it, a sidebar dragged shut could
@@ -342,13 +345,13 @@ struct SettingsView: View {
             Section {
                 if !collapsedSectionIDs.contains(section.id) {
                     ForEach(section.items) { item in
-                        HStack(spacing: 9) {
-                            Image(systemName: item.icon)
-                                .foregroundStyle(selectedID == item.id
-                                    ? AnyShapeStyle(.primary) : AnyShapeStyle(.tint))
-                                .frame(width: 18)
+                        HStack(spacing: 11) {
+                            // Understory: each tool on its own small tile.
+                            SettingsIconTile(symbol: item.icon, size: 28, selected: selectedID == item.id)
                             Text(item.title)
+                                .font(.system(size: 14, weight: .semibold))
                         }
+                        .padding(.vertical, 3)
                         .tag(item.id)
                         .id(item.id)
                         .help(item.title)
@@ -559,6 +562,26 @@ struct SettingsView: View {
 
     private func isPageVisible(_ page: SettingsPage) -> Bool {
         FeatureVisibilitySupport.isPageVisible(page, isAvailable: { $0.isAvailable })
+    }
+
+    /// Understory: pages that draw their own title, which takes the page's
+    /// icon there; every other page gets the same title above it.
+    private static let pagesWithOwnTitle: Set<SettingsPage> = [
+        .general, .features, .dock, .energy, .monitor, .mouse, .notchMascot, .notch, .switcher,
+    ]
+
+    private var pageWithHeader: some View {
+        let item = selectedSidebarItem.flatMap { id in sidebarItems.first { $0.id == id } }
+        return VStack(alignment: .leading, spacing: 0) {
+            if let item, !Self.pagesWithOwnTitle.contains(router.page) {
+                Text(item.title).settingsPageTitle()
+                    .padding(.horizontal, 24)
+                    .padding(.top, 16)
+                    .padding(.bottom, 2)
+            }
+            detail.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        }
+        .environment(\.settingsPageIcon, item?.icon)
     }
 
     @ViewBuilder

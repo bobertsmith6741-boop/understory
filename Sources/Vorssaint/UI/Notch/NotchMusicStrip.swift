@@ -131,7 +131,8 @@ struct NotchMusicStrip: View {
                                    bars: NotchLayout.compactMusicBarCount,
                                    barWidth: NotchLayout.compactMusicBarWidth,
                                    height: geometry.compactMusicBarHeight,
-                                   tint: tint?.color ?? .white)
+                                   // Understory: quiet grey, as a phone's island keeps them.
+                                   tint: .white.opacity(0.55))
                 .opacity(showsControl ? 0 : 1)
             if showsControl {
                 NotchMusicStripButton(playing: playing, tint: tint?.color ?? .white,

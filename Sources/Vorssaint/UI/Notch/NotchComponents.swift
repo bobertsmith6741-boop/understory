@@ -151,8 +151,8 @@ struct NotchIconButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundStyle(selected ? .white : .white.opacity(0.55))
+                .font(.system(size: 11, weight: .regular))
+                .foregroundStyle(selected ? .white : .white.opacity(0.38))
                 .contentTransition(.symbolEffect(.replace))
                 .animation(reduceMotion ? nil : .smooth(duration: 0.24), value: symbol)
                 .frame(width: 28, height: 28)

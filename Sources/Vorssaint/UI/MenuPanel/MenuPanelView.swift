@@ -2091,7 +2091,7 @@ struct UtilityActionButton: View {
                         }
                         accessoryButton
                     }
-                    .padding(.leading, 31)
+                    .padding(.leading, PanelRowMetrics.iconWidth + PanelRowMetrics.iconSpacing)
                 }
                 .panelRowInsets()
             } else {
@@ -2141,14 +2141,12 @@ struct UtilityActionButton: View {
             if isEditing && showsDragHandle {
                 PanelDragHandle()
             }
-            Image(systemName: systemImage)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(iconColor)
-                .frame(width: PanelRowMetrics.iconWidth)
+            // Understory: each tool on its own small tile, as Canopy sets them.
+            PanelIconTile(symbol: systemImage, tint: iconColor)
             VStack(alignment: .leading, spacing: 1) {
                 HStack(spacing: 5) {
                     Text(title)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(isHiddenInEditor ? Color.secondary : Color.primary)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -2203,7 +2201,7 @@ struct UtilityActionButton: View {
 
     private var iconColor: Color {
         if isHiddenInEditor { return .secondary }
-        return needsAttention ? .orange : .accentColor
+        return needsAttention ? .orange : .primary
     }
 
     private var captionColor: Color {
@@ -2255,14 +2253,12 @@ struct PanelToggleRow: View {
             if isEditing && showsDragHandle {
                 PanelDragHandle()
             }
-            Image(systemName: systemImage)
-                .font(.system(size: 15, weight: .semibold))
-                .foregroundStyle(iconColor)
-                .frame(width: PanelRowMetrics.iconWidth)
+            // Understory: each tool on its own small tile, as Canopy sets them.
+            PanelIconTile(symbol: systemImage, tint: iconColor)
             VStack(alignment: .leading, spacing: 2) {
                 HStack(spacing: 5) {
                     Text(title)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(isHiddenInEditor ? Color.secondary : Color.primary)
                         .lineLimit(2)
                         .fixedSize(horizontal: false, vertical: true)
@@ -2327,7 +2323,7 @@ struct PanelToggleRow: View {
     private var iconColor: Color {
         if isHiddenInEditor { return .secondary }
         if needsAttention { return .orange }
-        return isOn ? .accentColor : .secondary
+        return isOn ? .primary : .secondary
     }
 
     private var captionColor: Color {
@@ -2346,7 +2342,7 @@ struct PanelToggleRow: View {
 /// the padding of the other panel cards, so a row's text lines up with
 /// them, and separators start under the titles rather than the icons.
 enum PanelRowMetrics {
-    static let iconWidth: CGFloat = 22
+    static let iconWidth: CGFloat = 28
     static let iconSpacing: CGFloat = 9
     static let dragHandleWidth: CGFloat = 16
 
@@ -2362,6 +2358,24 @@ enum PanelRowMetrics {
 /// One card for a list of panel rows, split by hairlines the way the mixer
 /// lists its apps: a long list reads as one block instead of a stack of
 /// separate boxes, and every row stays its own target.
+/// Understory: a tool's glyph on a small rounded tile of light glass.
+struct PanelIconTile: View {
+    let symbol: String
+    var tint: Color = .primary
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: 13, weight: .semibold))
+            .foregroundStyle(tint)
+            .frame(width: PanelRowMetrics.iconWidth, height: PanelRowMetrics.iconWidth)
+            .background {
+                let shape = RoundedRectangle(cornerRadius: 8, style: .continuous)
+                shape.fill(Color.primary.opacity(0.09))
+                    .overlay(shape.strokeBorder(Color.primary.opacity(0.12), lineWidth: 0.5))
+            }
+    }
+}
+
 struct PanelRowGroup<Item: Hashable, Row: View>: View {
     let items: [Item]
     /// Edit mode puts a drag handle before every icon, so the separators
@@ -2379,13 +2393,7 @@ struct PanelRowGroup<Item: Hashable, Row: View>: View {
     private var rows: some View {
         VStack(alignment: .leading, spacing: 0) {
             ForEach(Array(items.enumerated()), id: \.element) { index, item in
-                if index > 0 {
-                    Divider()
-                        .padding(.leading, PanelRowMetrics.separatorInset(island: notchPresentation)
-                                    + (showsDragHandles ? PanelRowMetrics.dragHandleWidth + PanelRowMetrics.iconSpacing : 0))
-                        .padding(.trailing, PanelRowMetrics.horizontalInset(island: notchPresentation))
-                        .accessibilityHidden(true)
-                }
+                // Understory: no lines between rows; the tiles keep them apart.
                 row(item)
             }
         }

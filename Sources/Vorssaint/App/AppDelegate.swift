@@ -1855,7 +1855,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
             let window = SettingsWindow(contentViewController: host)
             window.isMouseButtonCaptureActive = { MouseButtonShortcutService.isCaptureActive }
             // .miniaturizable so the Window menu's Minimize (Cmd+M) actually works.
-            window.styleMask = [.titled, .closable, .miniaturizable, .resizable]
+            // Understory: the glass runs up under the title bar, as one pane.
+            window.styleMask = [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]
+            // Understory: a see-through window, so the wallpaper tints the
+            // glass Settings draws behind its pages.
+            window.isOpaque = false
+            window.backgroundColor = .clear
+            window.titlebarAppearsTransparent = true
+            // The page's own title says where you are, as in System Settings.
+            window.titleVisibility = .hidden
             host.view.widthAnchor.constraint(greaterThanOrEqualToConstant: SettingsWindowSupport.minContentWidth).isActive = true
             host.view.heightAnchor.constraint(greaterThanOrEqualToConstant: SettingsWindowSupport.minContentHeight).isActive = true
             let minFrame = window.frameRect(forContentRect: NSRect(

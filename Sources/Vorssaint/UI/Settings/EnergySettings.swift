@@ -42,7 +42,7 @@ struct EnergySettings: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(pageTitle).font(.title2.bold())
+                    Text(pageTitle).settingsPageTitle()
                     Text(pageDescription)
                         .font(.callout)
                         .foregroundStyle(.secondary)

@@ -310,4 +310,14 @@ final class NotchLockScreenPanel: NSPanel {
 private final class NotchLockScreenHostingView: NSHostingView<AnyView> {
     // The panel is never key, so a button has to answer the first click.
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    /// Understory: a two-finger swipe over the player tells it which way.
+    private var swipe = NotchLockScreenSwipe.Tracker()
+
+    override func scrollWheel(with event: NSEvent) {
+        super.scrollWheel(with: event)
+        if let direction = swipe.handle(event) {
+            NotificationCenter.default.post(name: NotchLockScreenSwipe.notification, object: direction)
+        }
+    }
 }

@@ -175,6 +175,12 @@ struct NotchLockScreenPlayer: View {
     @State private var requestedPlaying: Bool?
     /// Understory: the lyrics opened over the cover, to read back through.
     @State private var lyricsExpanded = false
+    /// Understory: which side of the cover the lyrics sit on, kept between locks.
+    /// Understory: lyrics swiped off the side, leaving the cover the room.
+    /// Kept between locks; another swipe brings them back.
+    @AppStorage("understoryLockScreenLyricsHidden") private var lyricsHidden = false
+    /// The way the last swipe went, so the lyrics leave and return that way.
+    @State private var swipeEdge: Edge = .trailing
     @ObservedObject private var wallpaper = DesktopWallpaperPalette.shared
     @ObservedObject private var lyrics = NotchLyricsService.shared
     private var text: RadialMenuFeatureStrings { FeatureStrings.radialMenu(l10n.language) }
@@ -269,10 +275,10 @@ struct NotchLockScreenPlayer: View {
             Group {
                 if lyricsExpanded {
                     NotchLockScreenFullLyrics(playback: playback, tint: accent, alignment: .center)
-                        .frame(height: 196)
+                        .frame(height: 232)
                         .onTapGesture(perform: toggleLyrics)
                 } else {
-                    cover(size: 196, playback: playback)
+                    cover(size: 232, playback: playback)
                 }
             }
             .padding(.bottom, 18)
@@ -301,34 +307,54 @@ struct NotchLockScreenPlayer: View {
 
     /// Understory: most displays lay the large cover beside the title and lyrics.
     private func wide(_ playback: NotchPlayback) -> some View {
-        VStack(spacing: 0) {
-            if lyricsExpanded {
-                NotchLockScreenFullLyrics(playback: playback, tint: accent, alignment: .leading)
-                    .frame(height: 184)
-                    .onTapGesture(perform: toggleLyrics)
-            } else {
-            HStack(alignment: .center, spacing: 24) {
-                cover(size: 184, playback: playback)
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(playback.track.title ?? text.mediaNowPlaying)
-                        .font(.system(size: 22, weight: .bold))
-                        .lineLimit(2)
-                    if let artist = playback.track.artist ?? playback.track.album {
-                        Text(artist)
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundStyle(.white.opacity(0.72))
-                            .lineLimit(1)
-                            .padding(.top, 3)
+        let hidden = lyricsHidden || !lyricsEnabled
+        return VStack(spacing: 0) {
+            Group {
+                if lyricsExpanded && !lyricsHidden {
+                    NotchLockScreenFullLyrics(playback: playback, tint: accent, alignment: .leading)
+                        .frame(height: Self.wideCover)
+                        .onTapGesture(perform: toggleLyrics)
+                } else {
+                    HStack(alignment: .center, spacing: hidden ? 0 : 24) {
+                        cover(size: lyricsHidden ? Self.fullCover : Self.wideCover, playback: playback)
+                            .overlay(alignment: .bottomLeading) {
+                                if lyricsHidden { coverCaption(playback) }
+                            }
+                        if !lyricsHidden {
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(playback.track.title ?? text.mediaNowPlaying)
+                                    .font(.system(size: 22, weight: .bold))
+                                    .lineLimit(2)
+                                if let artist = playback.track.artist ?? playback.track.album {
+                                    Text(artist)
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundStyle(.white.opacity(0.72))
+                                        .lineLimit(1)
+                                        .padding(.top, 3)
+                                }
+                                if lyricsEnabled {
+                                    NotchLockScreenLyrics(playback: playback, tint: accent, alignment: .leading, around: 2)
+                                        .onTapGesture(perform: toggleLyrics)
+                                        .padding(.top, 14)
+                                }
+                            }
+                            .multilineTextAlignment(.leading)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .transition(.move(edge: swipeEdge).combined(with: .opacity))
+                        }
                     }
-                    if lyricsEnabled {
-                        NotchLockScreenLyrics(playback: playback, tint: accent, alignment: .leading)
-                            .onTapGesture(perform: toggleLyrics)
-                            .padding(.top, 14)
-                    }
+                    .frame(maxWidth: .infinity)
                 }
-                .multilineTextAlignment(.leading)
-                .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .contentShape(Rectangle())
+            // Understory: a swipe, with two fingers or a drag, sends the
+            // lyrics off that side and lets the cover fill their room.
+            .simultaneousGesture(DragGesture(minimumDistance: 40).onEnded { value in
+                guard abs(value.translation.width) > abs(value.translation.height) * 1.5 else { return }
+                swipe(value.translation.width < 0 ? .leading : .trailing)
+            })
+            .onReceive(NotificationCenter.default.publisher(for: NotchLockScreenSwipe.notification)) { note in
+                if let edge = note.object as? NotchLockScreenSwipe.Direction { swipe(edge == .left ? .leading : .trailing) }
             }
             NotchMusicTimeline(playback: playback, service: music, tint: accent)
                 .padding(.top, 18)
@@ -336,6 +362,42 @@ struct NotchLockScreenPlayer: View {
             upNext()
         }
         .pane(width: NotchLockScreenLayout.widePaneWidth, tint: tint)
+    }
+
+    private static let wideCover: CGFloat = 224
+    /// The cover once the lyrics are swiped away, as tall as the room allows.
+    private static let fullCover: CGFloat = 272
+
+    /// The title over the foot of the full cover, on a shade for any artwork.
+    private func coverCaption(_ playback: NotchPlayback) -> some View {
+        VStack(alignment: .leading, spacing: 2) {
+            Text(playback.track.title ?? text.mediaNowPlaying)
+                .font(.system(size: 19, weight: .bold))
+                .lineLimit(1)
+            if let artist = playback.track.artist ?? playback.track.album {
+                Text(artist)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(.white.opacity(0.8))
+                    .lineLimit(1)
+            }
+        }
+        .multilineTextAlignment(.leading)
+        .padding(.horizontal, 14)
+        .padding(.bottom, 12)
+        .padding(.top, 36)
+        .frame(width: Self.fullCover, alignment: .leading)
+        .background(LinearGradient(colors: [.clear, .black.opacity(0.65)], startPoint: .top, endPoint: .bottom))
+        .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: 14, bottomTrailingRadius: 14, style: .continuous))
+        .transition(.opacity)
+    }
+
+    /// A swipe sends the lyrics off the side it goes to; the next brings
+    /// them back in from that side.
+    private func swipe(_ edge: Edge) {
+        guard lyricsEnabled, !lyricsExpanded else { return }
+        swipeEdge = edge
+        if reduceMotion { lyricsHidden.toggle() }
+        else { withAnimation(.smooth(duration: 0.45)) { lyricsHidden.toggle() } }
     }
 
     private func player(_ playback: NotchPlayback, artwork: CGFloat) -> some View {
@@ -458,21 +520,24 @@ private struct NotchLockScreenLyrics: View {
     let playback: NotchPlayback
     let tint: Color
     let alignment: HorizontalAlignment
+    /// Lines shown before and after the one being sung.
+    var around = 1
     @ObservedObject private var service = NotchLyricsService.shared
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    static let height: CGFloat = 76
+    private var height: CGFloat { 26 + CGFloat(around) * 2 * 21 }
 
     var body: some View {
         if let lyrics = service.lyrics, !lyrics.instrumental, !lyrics.lines.isEmpty, playback.hasPosition {
             TimelineView(.explicit(lyrics.changeDates(for: playback, offset: service.offset, from: .now))) { context in
                 let index = lyrics.activeIndex(at: playback.position(at: context.date), offset: service.offset)
                 VStack(alignment: alignment, spacing: 5) {
-                    line(lyrics, index.map { $0 - 1 }, current: false)
-                    line(lyrics, index, current: true)
-                    line(lyrics, index.map { $0 + 1 } ?? 0, current: false)
+                    ForEach(-around...around, id: \.self) { step in
+                        line(lyrics, index.map { $0 + step } ?? (step > 0 ? step - 1 : nil), current: step == 0,
+                             distance: abs(step))
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: Alignment(horizontal: alignment, vertical: .center))
-                .frame(height: Self.height)
+                .frame(height: height)
                 .contentShape(Rectangle())
                 .animation(reduceMotion ? nil : .smooth(duration: 0.35), value: index)
             }
@@ -480,15 +545,42 @@ private struct NotchLockScreenLyrics: View {
         }
     }
 
-    @ViewBuilder private func line(_ lyrics: NotchLyrics, _ index: Int?, current: Bool) -> some View {
+    @ViewBuilder private func line(_ lyrics: NotchLyrics, _ index: Int?, current: Bool, distance: Int = 1) -> some View {
         let text = index.flatMap { lyrics.lines.indices.contains($0) ? lyrics.lines[$0].text : nil } ?? ""
         Text(text.isEmpty && current ? "♪" : text.isEmpty ? " " : text)
             .font(.system(size: current ? 17 : 13, weight: current ? .bold : .medium, design: .rounded))
-            .foregroundStyle(current ? tint.opacity(0.98) : .white.opacity(0.45))
+            .foregroundStyle(current ? tint.opacity(0.98) : .white.opacity(distance > 1 ? 0.25 : 0.45))
             .lineLimit(1)
             .truncationMode(.tail)
-            .id("\(current)-\(index ?? -1)")
+            .id("\(distance)-\(current)-\(index ?? -1)")
             .transition(reduceMotion ? .opacity : .opacity.combined(with: .offset(y: 8)))
+    }
+}
+
+/// Understory: two-finger swipes over the player, read by its window
+/// (see NotchLockScreenHostingView) and passed on to the player.
+enum NotchLockScreenSwipe {
+    enum Direction { case left, right }
+    static let notification = Notification.Name("understoryLockScreenSwipe")
+
+    /// Follows one scroll gesture and names the way the fingers went,
+    /// whatever the scroll direction setting, once it clearly goes sideways.
+    struct Tracker {
+        private var travel = CGSize.zero
+        private var fired = false
+
+        mutating func handle(_ event: NSEvent) -> Direction? {
+            guard event.momentumPhase.isEmpty else { return nil }
+            if event.phase.contains(.began) { travel = .zero; fired = false }
+            defer { if !event.phase.intersection([.ended, .cancelled]).isEmpty { travel = .zero; fired = false } }
+            // Natural scrolling reports the content's way, the opposite of the fingers'.
+            let fingers: CGFloat = event.isDirectionInvertedFromDevice ? 1 : -1
+            travel.width += event.scrollingDeltaX * fingers
+            travel.height += event.scrollingDeltaY
+            guard !fired, abs(travel.width) > 50, abs(travel.width) > abs(travel.height) * 1.5 else { return nil }
+            fired = true
+            return travel.width < 0 ? .left : .right
+        }
     }
 }
 

@@ -152,7 +152,7 @@ struct NotchSettings: View {
         VStack(alignment: .leading, spacing: 20) {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(text.title).font(.title2.bold())
+                    Text(text.title).settingsPageTitle()
                     Text(text.description).font(.callout).foregroundStyle(.secondary)
                 }
                 Spacer(minLength: 12)

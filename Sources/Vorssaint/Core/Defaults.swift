@@ -1512,7 +1512,7 @@ enum Defaults {
         DefaultsKey.notchAgentsPriceUpdates: true,
         DefaultsKey.notchLyricsEnabled: true,
         DefaultsKey.notchLyricsOnline: false,
-        DefaultsKey.notchLyricsUnderNotch: true,
+        DefaultsKey.notchLyricsUnderNotch: false, // Understory: a closed island stays one thin row
         DefaultsKey.notchAmbientGlow: true,
         DefaultsKey.notchBrowserCovers: false,
         DefaultsKey.notchLiveEqualizer: false,

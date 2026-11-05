@@ -193,6 +193,11 @@ def main():
           + "}\nextension FeatureHubLayoutTests {\n"
           + declaration("Sources/Vorssaint/UI/Settings/SettingsCard.swift", "struct SettingsCard<")
           + "}\n"
+          # Understory: the page title and its icon tile.
+          + "".join(declaration("Sources/Vorssaint/UI/Settings/SettingsCard.swift", prefix)
+                    for prefix in ["struct SettingsIconTile:", "private struct SettingsPageIconKey:",
+                                   "extension EnvironmentValues {", "struct SettingsPageTitle:",
+                                   "extension Text {"])
           + declaration(feature_hub, "private struct FeatureHubScrollAnchor:"))
     write("CleanerLayout.swift", "import SwiftUI\nextension CleanerLayoutTests.Results {\n"
           + "".join(declaration(cleaner_view, prefix).replace("    private ", "    @ViewBuilder\n    ", 1)

@@ -32,7 +32,7 @@ struct DockSettings: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(pages.dockTitle).font(.title2.bold())
+                    Text(pages.dockTitle).settingsPageTitle()
                     Text(pages.dockDescription)
                         .font(.callout)
                         .foregroundStyle(.secondary)

@@ -101,7 +101,8 @@ struct DesktopWidgetStyle: Codable, Equatable {
     var shadow: Bool = true
     /// Text and accent come from the wallpaper behind the widget instead of
     /// the colors above.
-    var matchWallpaper: Bool = false
+    /// Understory: on by default, so widgets take the wallpaper's colours.
+    var matchWallpaper: Bool = true
 
     init() {}
 

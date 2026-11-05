@@ -25,7 +25,7 @@ struct GeneralSettings: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text(l10n.s.tabGeneral).font(.title2.bold())
+                Text(l10n.s.tabGeneral).settingsPageTitle()
                 basicsCard
                 appearanceCard
                 if AppFeature.keepAwake.isAvailable {

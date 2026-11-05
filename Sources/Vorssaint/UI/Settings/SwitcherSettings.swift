@@ -54,7 +54,7 @@ struct SwitcherSettings: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(l10n.s.tabSwitcher).font(.title2.bold())
+                    Text(l10n.s.tabSwitcher).settingsPageTitle()
                     Text(pages.switcherDescription)
                         .font(.callout)
                         .foregroundStyle(.secondary)

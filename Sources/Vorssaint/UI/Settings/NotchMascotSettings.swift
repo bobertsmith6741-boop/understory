@@ -68,7 +68,7 @@ struct NotchMascotSettings: View {
     private var header: some View {
         HStack(alignment: .center) {
             VStack(alignment: .leading, spacing: 5) {
-                Text(text.title).font(.title2.bold())
+                Text(text.title).settingsPageTitle()
                 Text(text.hint).font(.callout).foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }

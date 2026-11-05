@@ -87,7 +87,7 @@ struct NotchMusicView: View {
         // the iPhone's Now Playing, and drifts to the next cover's color.
         .background(alignment: .topLeading) {
             if ambientGlow, !preview, service.playback != nil, let tint = service.artworkTint {
-                RadialGradient(colors: [tint.color.opacity(0.5), tint.color.opacity(0.14), .clear],
+                RadialGradient(colors: [tint.color.opacity(0.26), tint.color.opacity(0.07), .clear],
                                center: .topLeading, startRadius: 0,
                                endRadius: max(size.width, 280) * 0.8)
                     .blur(radius: 30)
@@ -317,7 +317,8 @@ struct NotchMusicView: View {
                 extraButtons
                 sectionsButton
             }
-            NotchMusicTimeline(playback: playback, service: service, tint: accent, timesBeside: true)
+            // Understory: a thin, plain line, quieter than the album's colour.
+            NotchMusicTimeline(playback: playback, service: service, tint: .white.opacity(0.85), timesBeside: true)
                 .padding(.top, NotchLayout.musicHeadSpacing)
             transportRow {
                 if !preview && shuffle.isOffered { shuffleButton }
@@ -418,11 +419,10 @@ private struct NotchMusicSideButton: View {
     var body: some View {
         Button(action: action) {
             Image(systemName: symbol)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(active ? tint : .white.opacity(isEnabled ? 0.55 : 0.3))
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(active ? .white : .white.opacity(isEnabled ? 0.4 : 0.25))
                 .contentTransition(.symbolEffect(.replace))
                 .frame(width: plate, height: plate)
-                .background(.white.opacity(active ? 0.12 : 0), in: Circle())
                 .animation(reduceMotion ? nil : .smooth(duration: 0.22), value: active)
                 .frame(width: height, height: height)
                 .contentShape(Circle())
@@ -475,8 +475,8 @@ private struct NotchMusicOutputButton: View {
     var body: some View {
         NotchMenuButton(title: l10n.s.mixerSystemOutputTitle, items: items, cornerRadius: 22) {
             Image(systemName: symbol)
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.white.opacity(0.55))
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(.white.opacity(0.4))
                 .frame(width: 44, height: 44)
                 .contentShape(Circle())
         }
@@ -714,6 +714,7 @@ struct NotchMusicTimeline: View {
                 label: FeatureStrings.notch(l10n.language).playbackPosition,
                 range: 0...playback.duration,
                 tint: tint,
+                trackThickness: timesBeside ? 4 : nil,
                 valueLabel: timestamp(position),
                 scrollable: false,
                 onEditingChanged: { editing in

@@ -62,7 +62,7 @@ struct FeatureHubSettings: View {
                 // Keep the header's identity stable when the notice changes.
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 5) {
-                        Text(hub.pageTitle).font(.title2.bold())
+                        SettingsPageTitle(text: Text(hub.pageTitle))
                         Text(tab == .features ? hub.intro : hub.permissionsIntro)
                             .font(.callout)
                             .foregroundStyle(.secondary)

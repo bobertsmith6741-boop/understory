@@ -56,6 +56,21 @@ final class DesktopWidgetService: NSObject, ObservableObject, NSWindowDelegate {
         configuration = DesktopWidgetConfiguration.decode(
             UserDefaults.standard.data(forKey: DefaultsKey.desktopWidgetsConfiguration))
         super.init()
+        Self.matchWallpaperOnce(&configuration)
+    }
+
+    /// Understory: widgets saved before wallpaper colours became the default
+    /// switch to them once. A widget turned back to its own colours after
+    /// that keeps them.
+    private static let matchWallpaperMigrated = "understoryWidgetsMatchWallpaperMigrated"
+
+    private static func matchWallpaperOnce(_ configuration: inout DesktopWidgetConfiguration) {
+        let defaults = UserDefaults.standard
+        guard !defaults.bool(forKey: matchWallpaperMigrated) else { return }
+        defaults.set(true, forKey: matchWallpaperMigrated)
+        guard defaults.data(forKey: DefaultsKey.desktopWidgetsConfiguration) != nil else { return }
+        for index in configuration.widgets.indices { configuration.widgets[index].style.matchWallpaper = true }
+        defaults.set(configuration.encoded, forKey: DefaultsKey.desktopWidgetsConfiguration)
     }
 
     var isAvailable: Bool { AppFeature.desktopWidgets.isAvailable }

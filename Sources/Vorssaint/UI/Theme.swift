@@ -202,7 +202,7 @@ private struct PanelGlassSurface: View {
                 .glassEffect(.clear, in: Rectangle())  // Understory: the see-through glass variant
                 .overlay(
                     Rectangle()
-                        .fill(PanelSurface.baseFill(for: colorScheme).opacity(colorScheme == .light ? 0.14 : 0.1))  // Understory: let the glass through
+                        .fill(PanelSurface.baseFill(for: colorScheme).opacity(colorScheme == .light ? 0.14 : 0.62))  // Understory: smoked glass, as Canopy's
                 )
         } else {
             standardSurface

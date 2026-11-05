@@ -233,7 +233,7 @@ struct NotchCapsuleRestingView: View {
                                         radius: CapsuleLayout.artworkSide(geometry) / 2)
                     }
                     if music.playback?.isPlaying == true {
-                        NotchLiveEqualizerBars(bars: 3, barWidth: 2, height: 10, tint: music.artworkTint?.color ?? .white)
+                        NotchLiveEqualizerBars(bars: 3, barWidth: 2, height: 10, tint: .white.opacity(0.55))
                     }
                 case .none:
                     EmptyView()
@@ -300,7 +300,7 @@ struct NotchCapsuleMusicStrip: View {
                                            bars: NotchLayout.compactMusicBarCount,
                                            barWidth: NotchLayout.compactMusicBarWidth,
                                            height: CapsuleLayout.barsHeight(geometry),
-                                           tint: tint?.color ?? .white)
+                                           tint: .white.opacity(0.55))
                         .opacity(showsControl ? 0 : 1)
                     if showsControl {
                         NotchMusicStripButton(playing: playing, tint: tint?.color ?? .white,

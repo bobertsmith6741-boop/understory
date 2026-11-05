@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2026 Vorssaint
 
+import AppKit
 import SwiftUI
 
 /// One rounded group of related controls on a redesigned Settings page, with
@@ -16,20 +17,96 @@ struct SettingsCard<Content: View>: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 13) {
+        // Understory: the heading is a quiet label over the card, and the
+        // card a pane of light glass with a hairline edge.
+        VStack(alignment: .leading, spacing: 7) {
             if let title {
-                Text(title).font(.headline)
+                Text(title)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 6)
             }
-            content
+            VStack(alignment: .leading, spacing: 15) {
+                content
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(16)
+            .background {
+                let shape = RoundedRectangle(cornerRadius: 14, style: .continuous)
+                shape.fill(Color.primary.opacity(0.06))
+                    .overlay(shape.strokeBorder(Color.primary.opacity(0.08), lineWidth: 0.5))
+            }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(.quaternary.opacity(0.35), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 }
 
+/// Understory: a tool's glyph on a small rounded tile of light glass, as the
+/// sidebar and the rows draw it.
+struct SettingsIconTile: View {
+    let symbol: String
+    var size: CGFloat = 26
+    var selected = false
+
+    var body: some View {
+        Image(systemName: symbol)
+            .font(.system(size: size * 0.48, weight: .semibold))
+            .foregroundStyle(.primary)
+            .frame(width: size, height: size)
+            .background {
+                let shape = RoundedRectangle(cornerRadius: size * 0.3, style: .continuous)
+                shape.fill(Color.primary.opacity(selected ? 0.16 : 0.09))
+                    .overlay(shape.strokeBorder(Color.primary.opacity(0.1), lineWidth: 0.5))
+            }
+    }
+}
+
+/// Understory: the open page's icon, for its title.
+private struct SettingsPageIconKey: EnvironmentKey {
+    static let defaultValue: String? = nil
+}
+
+extension EnvironmentValues {
+    var settingsPageIcon: String? {
+        get { self[SettingsPageIconKey.self] }
+        set { self[SettingsPageIconKey.self] = newValue }
+    }
+}
+
+/// Understory: a page's name, large, beside its icon on a tile.
+struct SettingsPageTitle: View {
+    let text: Text
+    @Environment(\.settingsPageIcon) private var icon
+
+    var body: some View {
+        HStack(spacing: 12) {
+            if let icon { SettingsIconTile(symbol: icon, size: 34) }
+            text.font(.system(size: 26, weight: .bold))
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(.isHeader)
+    }
+}
+
+extension Text {
+    func settingsPageTitle() -> some View { SettingsPageTitle(text: self) }
+}
+
+/// Understory: the glass behind the whole Settings window, tinted by
+/// whatever lies behind it. Reduce Transparency makes it solid.
+struct SettingsGlassBackground: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSVisualEffectView {
+        let view = NSVisualEffectView()
+        view.material = .hudWindow
+        view.blendingMode = .behindWindow
+        view.state = .followsWindowActiveState
+        return view
+    }
+
+    func updateNSView(_ view: NSVisualEffectView, context: Context) {}
+}
+
 /// Where a row's text column starts, so follow-up controls can line up with it.
-let settingsRowTextInset: CGFloat = 26 + 12
+let settingsRowTextInset: CGFloat = 0
 
 /// Icon, title, one line of explanation and the control on the right. A nil
 /// symbol shows the app's own menu bar glyph, for rows about that icon.
@@ -50,11 +127,13 @@ struct SettingsRow<Accessory: View>: View {
     }
 
     var body: some View {
+        // Understory: a label and its control, as Canopy and System Settings
+        // set them; the icon is left to the sidebar.
         HStack(spacing: 12) {
-            iconTile
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
                     Text(title)
+                        .font(.system(size: 14, weight: .medium))
                     if let badge {
                         Text(badge)
                             .font(.system(size: 8, weight: .bold))
@@ -74,26 +153,6 @@ struct SettingsRow<Accessory: View>: View {
             }
             Spacer(minLength: 12)
             accessory
-        }
-    }
-
-    @ViewBuilder
-    private var iconTile: some View {
-        if let symbol {
-            Image(systemName: symbol)
-                .font(.system(size: 12, weight: .semibold))
-                .foregroundStyle(Color.accentColor)
-                .frame(width: 26, height: 26)
-                .background(Color.accentColor.opacity(0.12),
-                            in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-        } else {
-            // The menu bar draws the glyph white on a dark bar; the badge keeps
-            // that pairing so it reads as the same icon in both appearances.
-            MenuBarGlyph()
-                .frame(width: 17, height: 13)
-                .frame(width: 26, height: 26)
-                .background(Color.black.opacity(0.82),
-                            in: RoundedRectangle(cornerRadius: 7, style: .continuous))
         }
     }
 }

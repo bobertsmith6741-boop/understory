@@ -56,7 +56,7 @@ struct MouseSettings: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 VStack(alignment: .leading, spacing: 5) {
-                    Text(l10n.s.tabMouse).font(.title2.bold())
+                    Text(l10n.s.tabMouse).settingsPageTitle()
                     Text(FeatureStrings.settingsPages(l10n.language).mouseDescription)
                         .font(.callout)
                         .foregroundStyle(.secondary)
